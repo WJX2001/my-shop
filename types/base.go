@@ -1,0 +1,21 @@
+package types
+
+// 错误码定义
+const (
+	ReturnSuccess             = 2000 // 成功返回
+	InvalidFormatError        = 3001 // 无效的参数格式
+	InvalidVerifyWay          = 3002 // 无效的验证方式
+	PhoneFormatError          = 4003 // 手机号码格式不正确
+	PhoneVerifyCodeEmptyError = 4004 // 手机号码验证码为空
+	PhoneVerifyCodeError      = 4005 // 手机号码验证码不正确
+	EmailFormatError          = 4007 // 邮箱格式不正确
+	EmailVerifyCodeError      = 4009 // 邮箱验证码不正确
+	UserIsNotExist            = 4013 // 没有这个用户
+	UserIsExist               = 4014 // 用户已经存在
+	InviteCodeNotExist        = 4015 // 没有这个邀请码
+	CreateUserFail            = 4017 // 创建用户失败
+	InsertIntegralFail        = 4018 // 插入积分失败
+	CreateUserWalletFail      = 4019 // 创建用户钱包失败
+	PasswordIsEmpty           = 4021 // 输入密码为空
+	TwicePasswordNotEqual     = 4023 // 新旧密码相等
+)
