@@ -12,7 +12,7 @@ import (
 	"my-ganji-app/common"
 	rds_conn "my-ganji-app/redis"
 	"my-ganji-app/types"
-	typeuser "my-ganji-app/types/user"
+	type_user "my-ganji-app/types/user"
 )
 
 type User struct {
@@ -101,6 +101,15 @@ func (u *User) GetUserByEmail(email string) (User, error) {
 	return queryUser, nil
 }
 
+func (u *User) GetUserByPhone(phone string) (User, error) {
+	var queryUser User
+	err := queryUser.Query().Filter("phone", phone).Limit(1).One(&queryUser)
+	if err != nil {
+		return queryUser, errors.New("user is not exist")
+	}
+	return queryUser, nil
+}
+
 // AddLoginCount 用户登录次数自增，并更新修改时间
 func (u *User) AddLoginCount() error {
 	u.LoginCount += 1
@@ -118,7 +127,7 @@ func GetUserByToken(token string) (*User, error) {
 }
 
 // RegisterByPhoneOrEmail 通过手机号或者邮箱注册
-func RegisterByPhoneOrEmail(ctx context.Context, registerParam typeuser.UserRegisterCheck) (success bool, code int, err error) {
+func RegisterByPhoneOrEmail(ctx context.Context, registerParam type_user.UserRegisterCheck) (success bool, code int, err error) {
 	u := User{}
 	var phone, email string
 	if registerParam.VerifyWay == 1 { // 1: 手机号验证
@@ -219,8 +228,50 @@ func RegisterByPhoneOrEmail(ctx context.Context, registerParam typeuser.UserRegi
 	if err := crfrTree.Insert(); err != nil {
 		return false, types.InsertIntegralFail, errors.New("构建User Tree错误")
 	}
+	// 删除 redis 中的验证码 防止同一个验证码在过期前还能再注册一次
 	_ = rds_conn.RdsConn.Del(ctx, registerParam.PhoneEmail).Err()
 	return true, types.ReturnSuccess, nil
+}
+
+// LoginByPhoneOrEmail 通过手机号码，邮箱登陆
+func LoginByPhoneOrEmail(login_param type_user.UserLoginCheck) (bool, *type_user.UserLoginRet, int, error) {
+	u := User{}
+	if login_param.VerifyWay == 1 { // 1: 手机号码验证
+		ret_user, err := u.GetUserByPhone(login_param.PhoneEmail)
+		if err != nil {
+			return false, nil, types.UserNotRegister, errors.New("用户没有注册")
+		}
+		if !common.CheckPassword(ret_user.Password, login_param.Password) {
+			return false, nil, types.PasswordError, errors.New("输入密码错误")
+		}
+		if err := u.AddLoginCount(); err != nil {
+			return false, nil, types.AddLoginTimesError, errors.New("添加登陆次数错误")
+		}
+		return true, &type_user.UserLoginRet{
+			Id:       ret_user.Id,
+			UserName: ret_user.UserName,
+			Token:    ret_user.Token,
+			Phone:    ret_user.Phone,
+		}, types.ReturnSuccess, nil
+	} else if login_param.VerifyWay == 2 { // 2: 邮箱验证
+		ret_user, err := u.GetUserByEmail(login_param.PhoneEmail)
+		if err != nil {
+			return false, nil, types.UserNotRegister, errors.New("用户没有注册")
+		}
+		if !common.CheckPassword(ret_user.Password, login_param.Password) {
+			return false, nil, types.PasswordError, errors.New("输入密码")
+		}
+		if err := u.AddLoginCount(); err != nil {
+			return false, nil, types.AddLoginTimesError, errors.New("添加登陆次数错误")
+		}
+		return true, &type_user.UserLoginRet{
+			Id:    ret_user.Id,
+			Token: ret_user.Token,
+			Phone: ret_user.Phone,
+		}, types.ReturnSuccess, nil
+	} else {
+		return false, nil, types.InvalidVerifyWay, errors.New("没有这种验证方式")
+	}
 }
 
 func uidCode() (string, string) {

@@ -47,6 +47,10 @@ func (uc *UserController) GetUserInfo() {
 	return
 }
 
+// UserRegister @Title UserRegister
+// @Description 用户注册 UserRegister
+// @Success 200 status bool, data interface{}, msg string
+// @router /register [post]
 func (uc *UserController) UserRegister() {
 	ctx := uc.Ctx.Request.Context()
 	registerParam := typeUser.UserRegisterCheck{}
@@ -75,4 +79,28 @@ func (uc *UserController) UserRegister() {
 
 	uc.ServeJSON()
 	return
+}
+
+func (uc *UserController) UserLogin() {
+	ctx := uc.Ctx.Request.Context()
+	loginParam := typeUser.UserLoginCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &loginParam); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := loginParam.UserLoginCheckParamValidate(ctx); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+		_, user_data, code, err := models.LoginByPhoneOrEmail(loginParam)
+		if code == types.ReturnSuccess {
+			uc.Data["json"] = RetResource(true, types.ReturnSuccess, user_data, "登陆成功")
+		} else {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+		}
+		uc.ServeJSON()
+		return
+	}
 }

@@ -56,3 +56,44 @@ func (urc UserRegisterCheck) UserRegisterCheckParamValidate(ctx context.Context)
 	}
 	return types.ReturnSuccess, nil
 }
+
+type UserLoginCheck struct {
+	VerifyWay      int8   `json:"verify_way"`
+	PhoneEmail     string `json:"phone_email"`
+	PhoneEmailCode string `json:"phone_email_code"`
+	Password       string `json:"password"`
+}
+
+func (ulc UserLoginCheck) UserLoginCheckParamValidate(ctx context.Context) (int, error) {
+	if ulc.VerifyWay == 1 { // 手机号码验证
+		if ulc.PhoneEmailCode == "" {
+			return types.PhoneVerifyCodeEmptyError, errors.New("手机号验证码为空")
+		}
+		result, _ := regexp.MatchString(PhoneNumRule, ulc.PhoneEmail)
+		if !result {
+			return types.PhoneFormatError, errors.New("手机号码格式不正确")
+		}
+		phoneCode := rds_conn.RdsConn.Get(ctx, ulc.PhoneEmail).Val()
+		if phoneCode != ulc.PhoneEmailCode {
+			return types.PhoneVerifyCodeError, errors.New("手机验证码不正确")
+		}
+		if ulc.Password == "" {
+			return types.PasswordIsEmpty, errors.New("输入的密码不能为空")
+		}
+	} else if ulc.VerifyWay == 2 { // 邮箱验证
+		result, _ := regexp.MatchString(EmailPattern, ulc.PhoneEmail)
+		if !result {
+			return types.EmailFormatError, errors.New("邮箱格式不正确")
+		}
+		emailCode := rds_conn.RdsConn.Get(ctx, ulc.PhoneEmail).Val()
+		if emailCode != ulc.PhoneEmailCode {
+			return types.EmailVerifyCodeError, errors.New("邮箱验证码错误")
+		}
+		if ulc.Password == "" {
+			return types.PasswordIsEmpty, errors.New("输入的密码不能为空")
+		}
+	} else {
+		return types.InvalidVerifyWay, errors.New("无效的验证方式")
+	}
+	return types.ReturnSuccess, nil
+}

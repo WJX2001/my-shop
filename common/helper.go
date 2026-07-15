@@ -11,6 +11,11 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
+func CheckPassword(hash, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
 func TableName(str string) string {
 	str1, err := beego.AppConfig.String("dbprefix")
 	if err != nil {
