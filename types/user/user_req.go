@@ -13,6 +13,18 @@ const (
 	EmailPattern = `\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*`
 )
 
+type PhoneNumberCheck struct {
+	Phone string `json:"phone"`
+}
+
+func (pnc PhoneNumberCheck) PhoneNumberParamValidate() (int, error) {
+	result, _ := regexp.MatchString(PhoneNumRule, pnc.Phone)
+	if !result {
+		return types.PhoneFormatError, errors.New("手机号码格式不正确")
+	}
+	return types.ReturnSuccess, nil
+}
+
 type UserRegisterCheck struct {
 	VerifyWay      int8   `json:"verify_way"` // 1: 手机号码验证； 2：邮箱验证
 	PhoneEmail     string `json:"phone_email"`

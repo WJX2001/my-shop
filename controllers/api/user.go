@@ -2,15 +2,48 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
+	"my-ganji-app/common"
+	"my-ganji-app/common/utils"
 	"my-ganji-app/models"
+	rds_conn "my-ganji-app/redis"
 	"my-ganji-app/types"
-	typeUser "my-ganji-app/types/user"
+	type_user "my-ganji-app/types/user"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type UserController struct {
 	beego.Controller
+}
+
+func (uc *UserController) SendPhoneCode() {
+	ctx := uc.Ctx.Request.Context()
+	phone_number := type_user.PhoneNumberCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &phone_number); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err.Error(), "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := phone_number.PhoneNumberParamValidate(); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+		verify_code, _ := strconv.Atoi(common.GenValidateCode(6))
+		// 打印生成的验证码，控制台可见
+		logs.Info("当前手机号：%s，生成验证码：%d", phone_number.Phone, verify_code)
+
+		rds_conn.RdsConn.Del(ctx, phone_number.Phone)
+		rds_conn.RdsConn.Set(ctx, phone_number.Phone, fmt.Sprintf("%d", verify_code), time.Duration(1000)*time.Second).Err()
+		utils.SendMessageCode(phone_number.Phone, verify_code)
+		uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "发送手机号验证码成功")
+		uc.ServeJSON()
+		return
+	}
 }
 
 func (uc *UserController) GetUserInfo() {
@@ -53,7 +86,7 @@ func (uc *UserController) GetUserInfo() {
 // @router /register [post]
 func (uc *UserController) UserRegister() {
 	ctx := uc.Ctx.Request.Context()
-	registerParam := typeUser.UserRegisterCheck{}
+	registerParam := type_user.UserRegisterCheck{}
 	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &registerParam); err != nil {
 		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服处理")
 		uc.ServeJSON()
@@ -83,7 +116,7 @@ func (uc *UserController) UserRegister() {
 
 func (uc *UserController) UserLogin() {
 	ctx := uc.Ctx.Request.Context()
-	loginParam := typeUser.UserLoginCheck{}
+	loginParam := type_user.UserLoginCheck{}
 	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &loginParam); err != nil {
 		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服处理")
 		uc.ServeJSON()

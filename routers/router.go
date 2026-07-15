@@ -14,6 +14,7 @@ func init() {
 			beego.NSRouter("/GetUserInfo", &api.UserController{}, "get:GetUserInfo"),
 			beego.NSRouter("/register", &api.UserController{}, "post:UserRegister"),
 			beego.NSRouter("/login", &api.UserController{}, "post:UserLogin"),
+			beego.NSRouter("/sendPhoneCode", &api.UserController{}, "post:SendPhoneCode"),
 		))
 
 	beego.AddNamespace(apiPath)
