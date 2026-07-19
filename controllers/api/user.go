@@ -154,6 +154,44 @@ func (uc *UserController) EmailCodeCheck() {
 	}
 }
 
+func (uc *UserController) PostEmailCheck() {
+	email_reg_check := type_user.EmailRegisterCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &email_reg_check); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := email_reg_check.EmailNumberCheckParamValidate(); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+		var user_m models.User
+		success := user_m.ExistByEmail(email_reg_check.Email)
+		if email_reg_check.LoginRegister == 1 { // 登陆
+			if success == true {
+				uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "您已经注册，请继续登陆")
+				uc.ServeJSON()
+				return
+			} else {
+				uc.Data["json"] = RetResource(false, types.UserNotRegister, nil, "您还没有注册，请去注册")
+				uc.ServeJSON()
+				return
+			}
+		} else { // 注册
+			if success == true {
+				uc.Data["json"] = RetResource(false, types.UserAlreadyRegister, nil, "您已经注册，请去登陆")
+				uc.ServeJSON()
+				return
+			} else {
+				uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "您还没有注册，请继续注册")
+				uc.ServeJSON()
+				return
+			}
+		}
+	}
+}
+
 func (uc *UserController) GetUserInfo() {
 	bearerToken := uc.Ctx.Input.Header(HttpAuthKey)
 	if len(bearerToken) == 0 {

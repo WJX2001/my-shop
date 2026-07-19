@@ -93,6 +93,22 @@ func (ecc EmailCodeCheck) EmailCodeCheckParamValidate(ctx context.Context) (int,
 	return types.ReturnSuccess, nil
 }
 
+type EmailRegisterCheck struct {
+	EmailNumberCheck
+	LoginRegister int8 `json:"login_register"` // 1: 登陆 2: 注册
+}
+
+func (erc EmailRegisterCheck) EmailRegisterCheckParamValidate() (int, error) {
+	code, err := erc.EmailNumberCheckParamValidate()
+	if err != nil {
+		return code, err
+	}
+	if erc.LoginRegister != 1 && erc.LoginRegister != 2 {
+		return types.NoThisLoginRegisterWay, errors.New("没有这种验证方式，请选择 1 或者 2; 1:表示登陆，2:表示注册")
+	}
+	return types.ReturnSuccess, nil
+}
+
 type UserRegisterCheck struct {
 	VerifyWay      int8   `json:"verify_way"` // 1: 手机号码验证； 2：邮箱验证
 	PhoneEmail     string `json:"phone_email"`
