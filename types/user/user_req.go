@@ -61,6 +61,38 @@ func (prc PhoneRegisterCheck) PhoneRegisterCheckParamValidate() (int, error) {
 	return types.ReturnSuccess, nil
 }
 
+type EmailNumberCheck struct {
+	Email string `json:"email"`
+}
+
+func (enc EmailNumberCheck) EmailNumberCheckParamValidate() (int, error) {
+	result, _ := regexp.MatchString(EmailPattern, enc.Email)
+	if !result {
+		return types.EmailFormatError, errors.New("邮箱格式不正确")
+	}
+	return types.ReturnSuccess, nil
+}
+
+type EmailCodeCheck struct {
+	EmailNumberCheck
+	EmailCode string `json:"email_code"`
+}
+
+func (ecc EmailCodeCheck) EmailCodeCheckParamValidate(ctx context.Context) (int, error) {
+	code, err := ecc.EmailNumberCheckParamValidate()
+	if err != nil {
+		return code, err
+	}
+	if ecc.EmailCode == "" {
+		return types.EmailVerifyCodeEmptyError, errors.New("邮箱验证码为空")
+	}
+	email_code := rds_conn.RdsConn.Get(ctx, ecc.Email).Val()
+	if email_code != ecc.EmailCode {
+		return types.EmailVerifyCodeError, errors.New("邮箱验证码错误")
+	}
+	return types.ReturnSuccess, nil
+}
+
 type UserRegisterCheck struct {
 	VerifyWay      int8   `json:"verify_way"` // 1: 手机号码验证； 2：邮箱验证
 	PhoneEmail     string `json:"phone_email"`

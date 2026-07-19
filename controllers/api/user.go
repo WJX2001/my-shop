@@ -20,10 +20,7 @@ type UserController struct {
 	beego.Controller
 }
 
-// SendPhoneCode @Title SendPhoneCode
-// @Description 发送手机号验证码 SendPhoneCode
-// @Success 200 status bool, data interface{}, msg string
-// @router /send_phone_code [post]
+// SendPhoneCode 发送手机号验证码
 func (uc *UserController) SendPhoneCode() {
 	ctx := uc.Ctx.Request.Context()
 	phone_number := type_user.PhoneNumberCheck{}
@@ -109,6 +106,52 @@ func (uc *UserController) PhoneNumberRegisterCheck() {
 
 	}
 
+}
+
+func (uc *UserController) PostSendEmailCode() {
+	ctx := uc.Ctx.Request.Context()
+	email_code := type_user.EmailNumberCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &email_code); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := email_code.EmailNumberCheckParamValidate(); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+		verify_code, _ := strconv.Atoi(common.GenValidateCode(6))
+		rds_conn.RdsConn.Del(ctx, email_code.Email)
+		rds_conn.RdsConn.Set(ctx, email_code.Email, fmt.Sprintf("%d", verify_code), time.Duration(1000)*time.Second).Err()
+		// 打印生成的验证码，控制台可见
+		logs.Info("当前邮箱：%s，生成验证码：%d", email_code.Email, verify_code)
+		// TODO: 后续需要接入发送邮箱业务
+		//utils.SendSSLEmail(email_code.Email, verify_code)
+		uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "发送邮箱验证码成功")
+		uc.ServeJSON()
+		return
+	}
+}
+
+func (uc *UserController) EmailCodeCheck() {
+	ctx := uc.Ctx.Request.Context()
+	email_code_check := type_user.EmailCodeCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &email_code_check); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, nil, "无效的参数格式，请联系客服")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := email_code_check.EmailCodeCheckParamValidate(ctx); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		} else {
+			uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "邮箱验证码校验成功")
+			uc.ServeJSON()
+			return
+		}
+	}
 }
 
 func (uc *UserController) GetUserInfo() {

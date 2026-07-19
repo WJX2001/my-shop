@@ -9,6 +9,7 @@ const (
 	PhoneVerifyCodeEmptyError = 4004 // 手机号码验证码为空
 	PhoneVerifyCodeError      = 4005 // 手机号码验证码不正确
 	EmailFormatError          = 4007 // 邮箱格式不正确
+	EmailVerifyCodeEmptyError = 4008 // 邮箱码验证码为空
 	EmailVerifyCodeError      = 4009 // 邮箱验证码不正确
 	UserAlreadyRegister       = 4010 // 用户已经注册
 	UserNotRegister           = 4011 // 用户还没有注册
