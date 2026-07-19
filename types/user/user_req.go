@@ -45,6 +45,22 @@ func (pcc PhoneCodeCheck) ReqPhoneCodeCheckParamValidate(ctx context.Context) (i
 	return types.ReturnSuccess, nil
 }
 
+type PhoneRegisterCheck struct {
+	PhoneNumberCheck
+	LoginRegister int8 `json:"login_register"` // 1: 登陆 2: 注册
+}
+
+func (prc PhoneRegisterCheck) PhoneRegisterCheckParamValidate() (int, error) {
+	code, err := prc.PhoneNumberParamValidate()
+	if err != nil {
+		return code, err
+	}
+	if prc.LoginRegister != 1 && prc.LoginRegister != 2 {
+		return types.NoThisLoginRegisterWay, errors.New("没有这种验证方式，请选择 1 或者 2； 1 表示登陆，2表示注册")
+	}
+	return types.ReturnSuccess, nil
+}
+
 type UserRegisterCheck struct {
 	VerifyWay      int8   `json:"verify_way"` // 1: 手机号码验证； 2：邮箱验证
 	PhoneEmail     string `json:"phone_email"`

@@ -10,7 +10,9 @@ const (
 	PhoneVerifyCodeError      = 4005 // 手机号码验证码不正确
 	EmailFormatError          = 4007 // 邮箱格式不正确
 	EmailVerifyCodeError      = 4009 // 邮箱验证码不正确
+	UserAlreadyRegister       = 4010 // 用户已经注册
 	UserNotRegister           = 4011 // 用户还没有注册
+	NoThisLoginRegisterWay    = 4012 // 没有这种登陆注册验证方式
 	UserIsNotExist            = 4013 // 没有这个用户
 	UserIsExist               = 4014 // 用户已经存在
 	InviteCodeNotExist        = 4015 // 没有这个邀请码

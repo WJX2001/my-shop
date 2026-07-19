@@ -50,6 +50,7 @@ func (uc *UserController) SendPhoneCode() {
 	}
 }
 
+// PhoneCodeCheck 手机号验证码校验
 func (uc *UserController) PhoneCodeCheck() {
 	ctx := uc.Ctx.Request.Context()
 	phone_code_check := type_user.PhoneCodeCheck{}
@@ -67,6 +68,47 @@ func (uc *UserController) PhoneCodeCheck() {
 	uc.Data["json"] = RetResource(false, types.ReturnSuccess, nil, "手机号验证校验成功")
 	uc.ServeJSON()
 	return
+}
+
+// PhoneNumberRegisterCheck 手机号是否注册校验 防止重复注册
+func (uc *UserController) PhoneNumberRegisterCheck() {
+	phone_reg_check := type_user.PhoneRegisterCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &phone_reg_check); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := phone_reg_check.PhoneRegisterCheckParamValidate(); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+
+		var user_m models.User
+		success := user_m.ExistByPhone(phone_reg_check.Phone)
+		if phone_reg_check.LoginRegister == 1 { // 登陆
+			if success == true {
+				uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "您已经注册，请继续登陆")
+				uc.ServeJSON()
+				return
+			} else {
+				uc.Data["json"] = RetResource(false, types.UserNotRegister, nil, "您还没有注册，请去注册")
+				uc.ServeJSON()
+				return
+			}
+		} else { // 注册
+			if success == true {
+				uc.Data["json"] = RetResource(false, types.UserAlreadyRegister, nil, "您已经注册，请去登陆")
+				uc.ServeJSON()
+			} else {
+				uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "您还没有注册，请继续注册")
+				uc.ServeJSON()
+				return
+			}
+		}
+
+	}
+
 }
 
 func (uc *UserController) GetUserInfo() {
