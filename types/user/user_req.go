@@ -193,3 +193,51 @@ func (ulc UserLoginCheck) UserLoginCheckParamValidate(ctx context.Context) (int,
 	}
 	return types.ReturnSuccess, nil
 }
+
+type BindFundPasswordCheck struct {
+	VerifyWay      int8   `json:"verify_way"` // 1：手机号码验证； 2：邮箱验证
+	PhoneEmail     string `json:"phone_email"`
+	PhoneEmailCode string `json:"phone_email_code"`
+	PasswordOne    string `json:"password_one"`
+	PasswordTwo    string `json:"password_two"`
+}
+
+func (bfpc BindFundPasswordCheck) BindFundPasswordCheckParamValidate(ctx context.Context) (int, error) {
+	if bfpc.VerifyWay == 1 { // 手机号验证
+		if bfpc.PhoneEmail == "" {
+			return types.ParamEmptyError, errors.New("手机号码为空")
+		}
+		result, _ := regexp.MatchString(PhoneNumRule, bfpc.PhoneEmail)
+		if !result {
+			return types.PhoneFormatError, errors.New("手机号码格式不正确")
+		}
+		if bfpc.PhoneEmailCode == "" {
+			return types.ParamEmptyError, errors.New("手机号验证码为空")
+		}
+		phone_code := rds_conn.RdsConn.Get(ctx, bfpc.PhoneEmail).Val()
+		if phone_code != bfpc.PhoneEmailCode {
+			return types.PhoneVerifyCodeError, errors.New("手机验证码不正确")
+		}
+	} else if bfpc.VerifyWay == 2 { // 邮箱验证
+		if bfpc.PhoneEmail == "" {
+			return types.PasswordError, errors.New("邮箱为空")
+		}
+		result, _ := regexp.MatchString(EmailPattern, bfpc.PhoneEmail)
+		if !result {
+			return types.EmailFormatError, errors.New("邮箱格式不正确")
+		}
+		email_code := rds_conn.RdsConn.Get(ctx, bfpc.PhoneEmail).Val()
+		if email_code != bfpc.PhoneEmailCode {
+			return types.EmailVerifyCodeError, errors.New("邮箱验证码错误")
+		}
+	} else {
+		return types.InvalidVerifyWay, errors.New("无效的验证方式")
+	}
+	if bfpc.PasswordOne == "" || bfpc.PasswordTwo == "" {
+		return types.PasswordIsEmpty, errors.New("输入的密码不能为空")
+	}
+	if bfpc.PasswordOne != bfpc.PasswordTwo {
+		return types.NewOldPasswordEqual, errors.New("两次输入的密码不一样")
+	}
+	return types.ReturnSuccess, nil
+}

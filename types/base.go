@@ -3,8 +3,11 @@ package types
 // 错误码定义
 const (
 	ReturnSuccess             = 2000 // 成功返回
+	SystemDbErr               = 3000 // 数据库错误
 	InvalidFormatError        = 3001 // 无效的参数格式
 	InvalidVerifyWay          = 3002 // 无效的验证方式
+	ParamEmptyError           = 3003 // 传入参数为空
+	UserToKenCheckError       = 3004 // 用户 Token 校验失败
 	PhoneFormatError          = 4003 // 手机号码格式不正确
 	PhoneVerifyCodeEmptyError = 4004 // 手机号码验证码为空
 	PhoneVerifyCodeError      = 4005 // 手机号码验证码不正确
@@ -22,6 +25,8 @@ const (
 	CreateUserWalletFail      = 4019 // 创建用户钱包失败
 	PasswordError             = 4020 // 输入的密码错误
 	PasswordIsEmpty           = 4021 // 输入密码为空
+	NewOldPasswordEqual       = 4022 // 新旧密码相等
 	TwicePasswordNotEqual     = 4023 // 新旧密码相等
 	AddLoginTimesError        = 4024 // 添加登陆次数错误
+	AlreadyBindPassword       = 4052 // 已经绑定支付密码
 )

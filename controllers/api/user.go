@@ -108,6 +108,7 @@ func (uc *UserController) PhoneNumberRegisterCheck() {
 
 }
 
+// PostSendEmailCode 发送邮箱验证码
 func (uc *UserController) PostSendEmailCode() {
 	ctx := uc.Ctx.Request.Context()
 	email_code := type_user.EmailNumberCheck{}
@@ -134,6 +135,7 @@ func (uc *UserController) PostSendEmailCode() {
 	}
 }
 
+// EmailCodeCheck 邮箱验证码校验
 func (uc *UserController) EmailCodeCheck() {
 	ctx := uc.Ctx.Request.Context()
 	email_code_check := type_user.EmailCodeCheck{}
@@ -154,6 +156,7 @@ func (uc *UserController) EmailCodeCheck() {
 	}
 }
 
+// PostEmailCheck 邮箱是否注册校验
 func (uc *UserController) PostEmailCheck() {
 	email_reg_check := type_user.EmailRegisterCheck{}
 	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &email_reg_check); err != nil {
@@ -192,6 +195,44 @@ func (uc *UserController) PostEmailCheck() {
 	}
 }
 
+// BindFundPassword 绑定支付密码
+func (uc *UserController) BindFundPassword() {
+	ctx := uc.Ctx.Request.Context()
+	bearerToken := uc.Ctx.Input.Header(HttpAuthKey)
+	if len(bearerToken) == 0 {
+		uc.Data["json"] = RetResource(false, types.UserToKenCheckError, nil, "您还没有登陆，请登陆")
+		uc.ServeJSON()
+		return
+	}
+	token := strings.TrimPrefix(bearerToken, "Bearer ")
+	usr_t, err := models.GetUserByToken(token)
+	if err != nil {
+		uc.Data["json"] = RetResource(false, types.UserToKenCheckError, nil, "您还没有登陆，请登陆")
+		uc.ServeJSON()
+		return
+	}
+	bind_pwd := type_user.BindFundPasswordCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &bind_pwd); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err.Error(), "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := bind_pwd.BindFundPasswordCheckParamValidate(ctx); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+		success, code, err := models.BindFundPassword(bind_pwd, usr_t.Id)
+		if code != types.ReturnSuccess {
+			uc.Data["json"] = RetResource(success, code, nil, err.Error())
+		} else {
+			uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "绑定支付密码成功")
+		}
+		uc.ServeJSON()
+		return
+	}
+}
+
 func (uc *UserController) GetUserInfo() {
 	bearerToken := uc.Ctx.Input.Header(HttpAuthKey)
 	if len(bearerToken) == 0 {
@@ -226,10 +267,7 @@ func (uc *UserController) GetUserInfo() {
 	return
 }
 
-// UserRegister @Title UserRegister
-// @Description 用户注册 UserRegister
-// @Success 200 status bool, data interface{}, msg string
-// @router /register [post]
+// UserRegister 用户注册
 func (uc *UserController) UserRegister() {
 	ctx := uc.Ctx.Request.Context()
 	registerParam := type_user.UserRegisterCheck{}

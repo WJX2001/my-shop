@@ -274,6 +274,27 @@ func LoginByPhoneOrEmail(login_param type_user.UserLoginCheck) (bool, *type_user
 	}
 }
 
+// BindFundPassword 绑定支付密码
+func BindFundPassword(u_params type_user.BindFundPasswordCheck, user_id int64) (success bool, code int, err error) {
+	u := User{}
+	if err := orm.NewOrm().QueryTable(u.TableName()).Filter("id", user_id).One(&u); err != nil {
+		return false, types.UserIsNotExist, errors.New("用户不存在")
+	}
+	if u.FundPassword != "" {
+		return false, types.AlreadyBindPassword, errors.New("您已经绑定支付密码")
+	}
+	passwordHash, err := common.HashPassword(u_params.PasswordOne)
+	if err != nil {
+		return false, types.CreateUserFail, errors.New("密码加密失败")
+	}
+	u.FundPassword = passwordHash
+	err = u.Update()
+	if err != nil {
+		return false, types.SystemDbErr, errors.New("修改密码数据库操作失败")
+	}
+	return true, types.ReturnSuccess, nil
+}
+
 func uidCode() (string, string) {
 	tokenID := uuid.New()
 	inviteID := uuid.New()
