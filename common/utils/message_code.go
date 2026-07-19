@@ -14,4 +14,6 @@ func SendMessageCode(phone string, verify_code int) bool {
 	}
 
 	return false
+
+	// TODO: 后续需要接入 阿里云/腾讯云 短信服务
 }

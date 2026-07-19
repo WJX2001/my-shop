@@ -20,6 +20,10 @@ type UserController struct {
 	beego.Controller
 }
 
+// SendPhoneCode @Title SendPhoneCode
+// @Description 发送手机号验证码 SendPhoneCode
+// @Success 200 status bool, data interface{}, msg string
+// @router /send_phone_code [post]
 func (uc *UserController) SendPhoneCode() {
 	ctx := uc.Ctx.Request.Context()
 	phone_number := type_user.PhoneNumberCheck{}
@@ -44,6 +48,25 @@ func (uc *UserController) SendPhoneCode() {
 		uc.ServeJSON()
 		return
 	}
+}
+
+func (uc *UserController) PhoneCodeCheck() {
+	ctx := uc.Ctx.Request.Context()
+	phone_code_check := type_user.PhoneCodeCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &phone_code_check); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := phone_code_check.ReqPhoneCodeCheckParamValidate(ctx); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+	}
+	uc.Data["json"] = RetResource(false, types.ReturnSuccess, nil, "手机号验证校验成功")
+	uc.ServeJSON()
+	return
 }
 
 func (uc *UserController) GetUserInfo() {

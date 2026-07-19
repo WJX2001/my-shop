@@ -25,6 +25,26 @@ func (pnc PhoneNumberCheck) PhoneNumberParamValidate() (int, error) {
 	return types.ReturnSuccess, nil
 }
 
+type PhoneCodeCheck struct {
+	PhoneNumberCheck
+	PhoneCode string `json:"phone_code"`
+}
+
+func (pcc PhoneCodeCheck) ReqPhoneCodeCheckParamValidate(ctx context.Context) (int, error) {
+	code, err := pcc.PhoneNumberParamValidate()
+	if err != nil {
+		return code, err
+	}
+	if pcc.PhoneCode == "" {
+		return types.PhoneVerifyCodeEmptyError, errors.New("手机号码验证码为空")
+	}
+	phone_code := rds_conn.RdsConn.Get(ctx, pcc.Phone).Val()
+	if phone_code != pcc.PhoneCode {
+		return types.PhoneVerifyCodeError, errors.New("手机验证码不正确")
+	}
+	return types.ReturnSuccess, nil
+}
+
 type UserRegisterCheck struct {
 	VerifyWay      int8   `json:"verify_way"` // 1: 手机号码验证； 2：邮箱验证
 	PhoneEmail     string `json:"phone_email"`
