@@ -356,7 +356,7 @@ func UpdateOrCreatePhoneEmail(u_params type_user.UpdateCreatePhoneEmailCheck, us
 			return false, types.PhoneIsAlreadyBind, errors.New("手机号码已经绑定")
 		} else {
 			u.Phone = u_params.PhoneEmail
-			err := u.Update("phone")
+			err := u.Update("Phone")
 			if err != nil {
 				return false, types.SystemDbErr, errors.New("数据库操作失败")
 			}
@@ -367,7 +367,7 @@ func UpdateOrCreatePhoneEmail(u_params type_user.UpdateCreatePhoneEmailCheck, us
 			return false, types.OldNewEmailEqual, errors.New("新旧邮箱一样")
 		} else {
 			u.Email = u_params.PhoneEmail
-			err := u.Update("email")
+			err := u.Update("Email")
 			if err != nil {
 				return false, types.SystemDbErr, errors.New("数据库操作失败")
 			}
@@ -378,7 +378,7 @@ func UpdateOrCreatePhoneEmail(u_params type_user.UpdateCreatePhoneEmailCheck, us
 			return false, types.EmailAlreadyBind, errors.New("邮箱已经绑定")
 		} else {
 			u.Email = u_params.PhoneEmail
-			err := u.Update("email")
+			err := u.Update("Email")
 			if err != nil {
 				return false, types.SystemDbErr, errors.New("数据库操作失败")
 			}

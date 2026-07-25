@@ -35,4 +35,5 @@ const (
 	EmailAlreadyBind          = 4028 // 邮箱已经绑定
 	BindPhoneError            = 4029 // 没有绑定手机号
 	BindEmailError            = 4030 // 没有绑定邮箱
+	UserNotLogin              = 4031 // 用户没有登陆
 )

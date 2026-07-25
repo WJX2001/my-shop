@@ -406,3 +406,25 @@ func (uc *UserController) UserLogin() {
 		return
 	}
 }
+
+func (u *UserController) GetInviteCode() {
+	bearerToken := u.Ctx.Input.Header(HttpAuthKey)
+	if len(bearerToken) == 0 {
+		u.Data["json"] = RetResource(false, types.UserNotLogin, nil, "您还没有登陆，请登陆")
+		u.ServeJSON()
+		return
+	}
+	token := strings.TrimPrefix(bearerToken, "Bearer ")
+	user_token, err := models.GetUserByToken(token)
+	if err != nil {
+		u.Data["json"] = RetResource(false, types.UserNotLogin, nil, "您还没有登陆，请登陆")
+		u.ServeJSON()
+		return
+	}
+	invite_code := make(map[string]string)
+	invite_code["invite_code"] = user_token.MyInviteCode
+	invite_code["download_url"], _ = beego.AppConfig.String("download_url")
+	u.Data["json"] = RetResource(true, types.ReturnSuccess, invite_code, "获取我的邀请码成功")
+	u.ServeJSON()
+	return
+}
