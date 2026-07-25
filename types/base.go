@@ -33,4 +33,6 @@ const (
 	PhoneIsAlreadyBind        = 4026 // 手机号码已经绑定
 	OldNewEmailEqual          = 4027 // 新旧邮箱一样
 	EmailAlreadyBind          = 4028 // 邮箱已经绑定
+	BindPhoneError            = 4029 // 没有绑定手机号
+	BindEmailError            = 4030 // 没有绑定邮箱
 )

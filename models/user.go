@@ -389,6 +389,47 @@ func UpdateOrCreatePhoneEmail(u_params type_user.UpdateCreatePhoneEmailCheck, us
 	}
 }
 
+func ForgetPassword(u_params type_user.ForgetPasswordCheck) (success bool, code int, err error) {
+	u := User{}
+	if u_params.VerifyWay == 1 { // 手机号码
+		user_one, err := u.GetUserByPhone(u_params.PhoneEmail)
+		if err != nil {
+			return false, types.BindPhoneError, errors.New("没有绑定手机号码")
+		}
+		if common.CheckPassword(user_one.Password, u_params.NewPassword1) {
+			return false, types.NewOldPasswordEqual, errors.New("新老密码一样")
+		}
+		passwordHash, err := common.HashPassword(u_params.NewPassword1)
+		if err != nil {
+			return false, types.CreateUserFail, errors.New("密码加密失败")
+		}
+		user_one.Password = passwordHash
+		if err := user_one.Update("Password"); err != nil {
+			return false, types.SystemDbErr, errors.New("数据库操作失败")
+		}
+		return true, types.ReturnSuccess, nil
+	} else if u_params.VerifyWay == 2 {
+		user_two, err := u.GetUserByEmail(u_params.PhoneEmail)
+		if err != nil {
+			return false, types.BindEmailError, errors.New("没有绑定邮箱")
+		}
+		if common.CheckPassword(user_two.Password, u_params.NewPassword1) {
+			return false, types.NewOldPasswordEqual, errors.New("新密码和原密码一样")
+		}
+		passwordHash, err := common.HashPassword(u_params.NewPassword1)
+		if err != nil {
+			return false, types.CreateUserFail, errors.New("密码加密失败")
+		}
+		user_two.Password = passwordHash
+		if err := user_two.Update("Password"); err != nil {
+			return false, types.SystemDbErr, errors.New("数据库操作失败")
+		}
+		return true, types.ReturnSuccess, nil
+	} else {
+		return false, types.InvalidVerifyWay, errors.New("无效的验证方式")
+	}
+}
+
 func uidCode() (string, string) {
 	tokenID := uuid.New()
 	inviteID := uuid.New()

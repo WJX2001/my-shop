@@ -293,6 +293,31 @@ func (uc *UserController) UpdateCreatePhoneEmail() {
 
 }
 
+// ForgetPassword 找回密码
+func (uc *UserController) ForgetPassword() {
+	ctx := uc.Ctx.Request.Context()
+	forget_password := type_user.ForgetPasswordCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &forget_password); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, nil, "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := forget_password.ForgetPasswordCheckParamValidate(ctx); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+		success, code, err := models.ForgetPassword(forget_password)
+		if err != nil {
+			uc.Data["json"] = RetResource(success, code, err, err.Error())
+		} else {
+			uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "找回密码成功")
+		}
+		uc.ServeJSON()
+		return
+	}
+}
+
 func (uc *UserController) GetUserInfo() {
 	bearerToken := uc.Ctx.Input.Header(HttpAuthKey)
 	if len(bearerToken) == 0 {

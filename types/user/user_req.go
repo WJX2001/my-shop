@@ -336,3 +336,45 @@ func (ucpe UpdateCreatePhoneEmailCheck) UpdateCreatePhoneEmailCheckParamValidate
 	}
 	return types.ReturnSuccess, nil
 }
+
+type ForgetPasswordCheck struct {
+	VerifyWay      int8   `json:"verify_way"`
+	PhoneEmail     string `json:"phone_email"`
+	PhoneEmailCode string `json:"phone_email_code"`
+	NewPassword1   string `json:"new_password1"`
+	NewPassword2   string `json:"new_password2"`
+}
+
+func (fpc ForgetPasswordCheck) ForgetPasswordCheckParamValidate(ctx context.Context) (int, error) {
+	if fpc.VerifyWay == 1 { // 手机号码验证
+		if fpc.PhoneEmailCode == "" {
+			return types.PhoneVerifyCodeEmptyError, errors.New("手机号验证码为空")
+		}
+		result, _ := regexp.MatchString(PhoneNumRule, fpc.PhoneEmail)
+		if !result {
+			return types.PhoneFormatError, errors.New("手机号码格式不正确")
+		}
+		phone_code := rds_conn.RdsConn.Get(ctx, fpc.PhoneEmail).Val()
+		if phone_code != fpc.PhoneEmailCode {
+			return types.PhoneVerifyCodeError, errors.New("手机验证码不正确")
+		}
+	} else if fpc.VerifyWay == 2 { // 邮箱验证
+		result, _ := regexp.MatchString(EmailPattern, fpc.PhoneEmail)
+		if !result {
+			return types.EmailFormatError, errors.New("邮箱格式不正确")
+		}
+		email_code := rds_conn.RdsConn.Get(ctx, fpc.PhoneEmail).Val()
+		if email_code != fpc.PhoneEmailCode {
+			return types.EmailVerifyCodeError, errors.New("邮箱验证码错误")
+		}
+	} else {
+		return types.InvalidVerifyWay, errors.New("无效的验证方式")
+	}
+	if fpc.NewPassword1 == "" || fpc.NewPassword2 == "" {
+		return types.PasswordIsEmpty, errors.New("输入的密码不能为空")
+	}
+	if fpc.NewPassword1 != fpc.NewPassword2 {
+		return types.TwicePasswordNotEqual, errors.New("两次输入的密码不一样")
+	}
+	return types.ReturnSuccess, nil
+}
