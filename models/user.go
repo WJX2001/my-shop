@@ -288,13 +288,14 @@ func BindFundPassword(u_params type_user.BindFundPasswordCheck, user_id int64) (
 		return false, types.CreateUserFail, errors.New("密码加密失败")
 	}
 	u.FundPassword = passwordHash
-	err = u.Update()
+	err = u.Update("fund_password")
 	if err != nil {
 		return false, types.SystemDbErr, errors.New("修改密码数据库操作失败")
 	}
 	return true, types.ReturnSuccess, nil
 }
 
+// UpdatePassword 更
 func UpdatePassword(u_params type_user.UpdatePasswordCheck, user_id int64) (success bool, code int, err error) {
 	u := User{}
 	if err := orm.NewOrm().QueryTable(u.TableName()).RelatedSel().Filter("id", user_id).One(&u); err != nil {
@@ -331,6 +332,61 @@ func UpdatePassword(u_params type_user.UpdatePasswordCheck, user_id int64) (succ
 		return true, types.InvalidVerifyWay, errors.New("无效的修改密码的方式")
 	}
 	return false, types.ReturnSuccess, nil
+}
+
+// UpdateOrCreatePhoneEmail 修改手机号码，邮箱或者绑定手机号码邮箱
+func UpdateOrCreatePhoneEmail(u_params type_user.UpdateCreatePhoneEmailCheck, user_id int64) (success bool, code int, err error) {
+	u := User{}
+	if err := orm.NewOrm().QueryTable(u.TableName()).Filter("id", user_id).One(&u); err != nil {
+		return false, types.UserIsNotExist, errors.New("用户不存在")
+	}
+	if u_params.UpdateWay == 1 { // 修改手机号码
+		if u.Phone == u_params.PhoneEmail {
+			return false, types.OldNewPhoneIsEqual, errors.New("新旧手机号一样")
+		} else {
+			u.Phone = u_params.PhoneEmail
+			err := u.Update("phone")
+			if err != nil {
+				return false, types.SystemDbErr, errors.New("数据库操作失败")
+			}
+			return true, types.ReturnSuccess, nil
+		}
+	} else if u_params.UpdateWay == 2 { // 绑定手机号码
+		if u.Phone != "" {
+			return false, types.PhoneIsAlreadyBind, errors.New("手机号码已经绑定")
+		} else {
+			u.Phone = u_params.PhoneEmail
+			err := u.Update("phone")
+			if err != nil {
+				return false, types.SystemDbErr, errors.New("数据库操作失败")
+			}
+			return true, types.ReturnSuccess, nil
+		}
+	} else if u_params.UpdateWay == 3 { // 修改邮箱
+		if u.Email == u_params.PhoneEmail {
+			return false, types.OldNewEmailEqual, errors.New("新旧邮箱一样")
+		} else {
+			u.Email = u_params.PhoneEmail
+			err := u.Update("email")
+			if err != nil {
+				return false, types.SystemDbErr, errors.New("数据库操作失败")
+			}
+			return true, types.ReturnSuccess, nil
+		}
+	} else if u_params.UpdateWay == 4 { // 绑定邮箱
+		if u.Email != "" {
+			return false, types.EmailAlreadyBind, errors.New("邮箱已经绑定")
+		} else {
+			u.Email = u_params.PhoneEmail
+			err := u.Update("email")
+			if err != nil {
+				return false, types.SystemDbErr, errors.New("数据库操作失败")
+			}
+			return true, types.ReturnSuccess, nil
+		}
+	} else {
+		return false, types.InvalidVerifyWay, errors.New("无效的验证方式")
+	}
 }
 
 func uidCode() (string, string) {

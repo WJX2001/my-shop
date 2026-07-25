@@ -236,17 +236,8 @@ func (uc *UserController) BindFundPassword() {
 // UpdatePassword 修改登录或者支付密码
 func (uc *UserController) UpdatePassword() {
 	ctx := uc.Ctx.Request.Context()
-	bearerToken := uc.Ctx.Input.Header(HttpAuthKey)
-	if len(bearerToken) == 0 {
-		uc.Data["json"] = RetResource(false, types.UserToKenCheckError, nil, "您还没有登陆，请登陆")
-		uc.ServeJSON()
-		return
-	}
-	token := strings.TrimPrefix(bearerToken, "Bearer ")
-	usr_t, err := models.GetUserByToken(token)
-	if err != nil {
-		uc.Data["json"] = RetResource(false, types.UserToKenCheckError, nil, "您还没有登陆，请登陆")
-		uc.ServeJSON()
+	usr_t, ok := uc.CurrentUser()
+	if !ok {
 		return
 	}
 	upd_pwd := type_user.UpdatePasswordCheck{}
@@ -269,6 +260,37 @@ func (uc *UserController) UpdatePassword() {
 		uc.ServeJSON()
 		return
 	}
+}
+
+// UpdateCreatePhoneEmail 修改绑定手机号码邮箱
+func (uc *UserController) UpdateCreatePhoneEmail() {
+	ctx := uc.Ctx.Request.Context()
+	usr, ok := uc.CurrentUser()
+	if !ok {
+		return
+	}
+	upd_phone_email := type_user.UpdateCreatePhoneEmailCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &upd_phone_email); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, nil, "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := upd_phone_email.UpdateCreatePhoneEmailCheckParamValidate(ctx); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+
+		success, code, err := models.UpdateOrCreatePhoneEmail(upd_phone_email, usr.Id)
+		if success {
+			uc.Data["json"] = RetResource(true, types.ReturnSuccess, upd_phone_email, "绑定邮箱成功")
+		} else {
+			uc.Data["json"] = RetResource(false, code, err, err.Error())
+		}
+		uc.ServeJSON()
+		return
+	}
+
 }
 
 func (uc *UserController) GetUserInfo() {

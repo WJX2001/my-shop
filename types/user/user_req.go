@@ -295,3 +295,44 @@ func (upc UpdatePasswordCheck) UpdatePasswordCheckParamValidate(ctx context.Cont
 	}
 	return types.ReturnSuccess, nil
 }
+
+// UpdateCreatePhoneEmailCheck 修改手机号码，邮箱或者绑定手机号码邮箱
+type UpdateCreatePhoneEmailCheck struct {
+	UpdateWay      int8   `json:"update_way"` // 1: 修改手机号码 2: 绑定手机号码 3: 修改邮箱 4: 绑定邮箱
+	PhoneEmail     string `json:"phone_email"`
+	PhoneEmailCode string `json:"phone_email_code"`
+}
+
+func (ucpe UpdateCreatePhoneEmailCheck) UpdateCreatePhoneEmailCheckParamValidate(ctx context.Context) (int, error) {
+	if ucpe.UpdateWay == 1 || ucpe.UpdateWay == 2 { // 修改手机号码
+		if ucpe.PhoneEmail == "" {
+			return types.ParamEmptyError, errors.New("手机号码为空")
+		}
+		result, _ := regexp.MatchString(PhoneNumRule, ucpe.PhoneEmail)
+		if !result {
+			return types.PhoneFormatError, errors.New("手机号码格式不正确")
+		}
+		if ucpe.PhoneEmailCode == "" {
+			return types.PhoneVerifyCodeEmptyError, errors.New("手机号验证码为空")
+		}
+		phone_code := rds_conn.RdsConn.Get(ctx, ucpe.PhoneEmail).Val()
+		if phone_code != ucpe.PhoneEmailCode {
+			return types.PhoneVerifyCodeError, errors.New("手机验证码不正确")
+		}
+	} else if ucpe.UpdateWay == 3 || ucpe.UpdateWay == 4 {
+		if ucpe.PhoneEmail == "" {
+			return types.ParamEmptyError, errors.New("邮箱为空")
+		}
+		result, _ := regexp.MatchString(EmailPattern, ucpe.PhoneEmail)
+		if !result {
+			return types.EmailFormatError, errors.New("邮箱格式不正确")
+		}
+		email_code := rds_conn.RdsConn.Get(ctx, ucpe.PhoneEmail).Val()
+		if email_code != ucpe.PhoneEmailCode {
+			return types.EmailVerifyCodeError, errors.New("邮箱验证码错误")
+		}
+	} else {
+		return types.InvalidVerifyWay, errors.New("无效的验证方式")
+	}
+	return types.ReturnSuccess, nil
+}

@@ -28,5 +28,9 @@ const (
 	NewOldPasswordEqual       = 4022 // 新旧密码相等
 	TwicePasswordNotEqual     = 4023 // 新旧密码相等
 	AddLoginTimesError        = 4024 // 添加登陆次数错误
+	OldNewPhoneIsEqual        = 4025 // 新旧手机号码一样
 	AlreadyBindPassword       = 4052 // 已经绑定支付密码
+	PhoneIsAlreadyBind        = 4026 // 手机号码已经绑定
+	OldNewEmailEqual          = 4027 // 新旧邮箱一样
+	EmailAlreadyBind          = 4028 // 邮箱已经绑定
 )
