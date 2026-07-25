@@ -233,6 +233,44 @@ func (uc *UserController) BindFundPassword() {
 	}
 }
 
+// UpdatePassword 修改登录或者支付密码
+func (uc *UserController) UpdatePassword() {
+	ctx := uc.Ctx.Request.Context()
+	bearerToken := uc.Ctx.Input.Header(HttpAuthKey)
+	if len(bearerToken) == 0 {
+		uc.Data["json"] = RetResource(false, types.UserToKenCheckError, nil, "您还没有登陆，请登陆")
+		uc.ServeJSON()
+		return
+	}
+	token := strings.TrimPrefix(bearerToken, "Bearer ")
+	usr_t, err := models.GetUserByToken(token)
+	if err != nil {
+		uc.Data["json"] = RetResource(false, types.UserToKenCheckError, nil, "您还没有登陆，请登陆")
+		uc.ServeJSON()
+		return
+	}
+	upd_pwd := type_user.UpdatePasswordCheck{}
+	if err := json.Unmarshal(uc.Ctx.Input.RequestBody, &upd_pwd); err != nil {
+		uc.Data["json"] = RetResource(false, types.InvalidFormatError, nil, "无效的参数格式，请联系客服处理")
+		uc.ServeJSON()
+		return
+	} else {
+		if code, err := upd_pwd.UpdatePasswordCheckParamValidate(ctx); err != nil {
+			uc.Data["json"] = RetResource(false, code, nil, err.Error())
+			uc.ServeJSON()
+			return
+		}
+		success, code, err := models.UpdatePassword(upd_pwd, usr_t.Id)
+		if code != types.ReturnSuccess {
+			uc.Data["json"] = RetResource(success, code, nil, err.Error())
+		} else {
+			uc.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "修改密码成功")
+		}
+		uc.ServeJSON()
+		return
+	}
+}
+
 func (uc *UserController) GetUserInfo() {
 	bearerToken := uc.Ctx.Input.Header(HttpAuthKey)
 	if len(bearerToken) == 0 {

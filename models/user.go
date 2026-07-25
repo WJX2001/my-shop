@@ -259,7 +259,7 @@ func LoginByPhoneOrEmail(login_param type_user.UserLoginCheck) (bool, *type_user
 			return false, nil, types.UserNotRegister, errors.New("用户没有注册")
 		}
 		if !common.CheckPassword(ret_user.Password, login_param.Password) {
-			return false, nil, types.PasswordError, errors.New("输入密码")
+			return false, nil, types.PasswordError, errors.New("输入密码不正确")
 		}
 		if err := u.AddLoginCount(); err != nil {
 			return false, nil, types.AddLoginTimesError, errors.New("添加登陆次数错误")
@@ -293,6 +293,44 @@ func BindFundPassword(u_params type_user.BindFundPasswordCheck, user_id int64) (
 		return false, types.SystemDbErr, errors.New("修改密码数据库操作失败")
 	}
 	return true, types.ReturnSuccess, nil
+}
+
+func UpdatePassword(u_params type_user.UpdatePasswordCheck, user_id int64) (success bool, code int, err error) {
+	u := User{}
+	if err := orm.NewOrm().QueryTable(u.TableName()).RelatedSel().Filter("id", user_id).One(&u); err != nil {
+		return false, types.UserIsNotExist, errors.New("用户不存在")
+	}
+	passwordNewHash, err := common.HashPassword(u_params.NewPassword)
+	if err != nil {
+		return false, types.CreateUserFail, errors.New("密码加密失败")
+	}
+	if u_params.UpdateWay == 1 { // 修改登陆密码
+		if !common.CheckPassword(u.Password, u_params.OldPassword) {
+			return false, types.PasswordError, errors.New("旧密码不正确")
+		}
+		if common.CheckPassword(u.Password, u_params.NewPassword) {
+			return false, types.NewOldPasswordEqual, errors.New("新老密码一样")
+		}
+
+		u.Password = passwordNewHash
+		if err := u.Update("password"); err != nil {
+			return false, types.SystemDbErr, errors.New("修改密码数据库操作失败")
+		}
+	} else if u_params.UpdateWay == 2 { // 修改支付密码
+		if !common.CheckPassword(u.FundPassword, u_params.OldPassword) {
+			return false, types.PasswordError, errors.New("旧密码不正确")
+		}
+		if common.CheckPassword(u.FundPassword, u_params.NewPassword) {
+			return false, types.NewOldPasswordEqual, errors.New("新老密码一样")
+		}
+		u.FundPassword = passwordNewHash
+		if err := u.Update("fund_password"); err != nil {
+			return false, types.SystemDbErr, errors.New("修改密码数据库操作失败")
+		}
+	} else {
+		return true, types.InvalidVerifyWay, errors.New("无效的修改密码的方式")
+	}
+	return false, types.ReturnSuccess, nil
 }
 
 func uidCode() (string, string) {

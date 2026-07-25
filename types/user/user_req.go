@@ -241,3 +241,57 @@ func (bfpc BindFundPasswordCheck) BindFundPasswordCheckParamValidate(ctx context
 	}
 	return types.ReturnSuccess, nil
 }
+
+type UpdatePasswordCheck struct {
+	VerifyWay      int8   `json:"verify_way"` // 1: 手机号码验证 2: 邮箱验证
+	UpdateWay      int8   `json:"update_way"` // 1: 修改登陆密码 2： 修改支付密码
+	PhoneEmail     string `json:"phone_email"`
+	PhoneEmailCode string `json:"phone_email_code"`
+	OldPassword    string `json:"old_password"`
+	NewPassword    string `json:"new_password"`
+}
+
+func (upc UpdatePasswordCheck) UpdatePasswordCheckParamValidate(ctx context.Context) (int, error) {
+	if upc.VerifyWay == 1 { // 手机号码验证
+		if upc.PhoneEmail == "" {
+			return types.ParamEmptyError, errors.New("手机号码为空")
+		}
+		result, _ := regexp.MatchString(PhoneNumRule, upc.PhoneEmail)
+		if !result {
+			return types.PhoneFormatError, errors.New("手机号码格式不正确")
+		}
+		if upc.PhoneEmailCode == "" {
+			return types.PhoneVerifyCodeEmptyError, errors.New("手机号验证码为空")
+		}
+		phone_code := rds_conn.RdsConn.Get(ctx, upc.PhoneEmail).Val()
+		if phone_code != upc.PhoneEmailCode {
+			return types.PhoneVerifyCodeError, errors.New("手机验证码不正确")
+		}
+	} else if upc.VerifyWay == 2 {
+		if upc.PhoneEmail == "" {
+			return types.ParamEmptyError, errors.New("邮箱为空")
+		}
+		result, _ := regexp.MatchString(EmailPattern, upc.PhoneEmail)
+		if !result {
+			return types.EmailFormatError, errors.New("邮箱格式不正确")
+		}
+		email_code := rds_conn.RdsConn.Get(ctx, upc.PhoneEmail).Val()
+		if email_code != upc.PhoneEmailCode {
+			return types.EmailVerifyCodeError, errors.New("邮箱验证码错误")
+		}
+	} else {
+		return types.InvalidVerifyWay, errors.New("无效的验证方式")
+	}
+
+	if upc.NewPassword == "" || upc.OldPassword == "" {
+		return types.PasswordIsEmpty, errors.New("输入的密码不能为空")
+	}
+
+	if upc.NewPassword == upc.OldPassword {
+		return types.NewOldPasswordEqual, errors.New("新密码和老密码相等")
+	}
+	if upc.UpdateWay != 1 && upc.UpdateWay != 2 {
+		return types.InvalidVerifyWay, errors.New("无效的修改密码方式")
+	}
+	return types.ReturnSuccess, nil
+}
