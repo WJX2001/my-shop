@@ -378,3 +378,16 @@ func (fpc ForgetPasswordCheck) ForgetPasswordCheckParamValidate(ctx context.Cont
 	}
 	return types.ReturnSuccess, nil
 }
+
+type UpdateUserInfoCheck struct {
+	ImageId  int64  `json:"image_id"`
+	UserName string `json:"user_name"`
+}
+
+// UserAuthCheck用户实名制度认证
+type UserAuthCheck struct {
+	RealName       string `json:"real_name"`
+	IdCard         string `json:"id_card"`
+	IdCardPosImgId int64  `json:"id_card_pos_img_id"`
+	IdCardNegImgId int64  `json:"id_card_neg_img_id"`
+}

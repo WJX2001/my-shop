@@ -1,6 +1,7 @@
 package api
 
 import (
+	beego "github.com/beego/beego/v2/server/web"
 	"my-ganji-app/models"
 	"my-ganji-app/types"
 	"strings"
@@ -20,8 +21,12 @@ func RetResource(status bool, code int, data interface{}, msg string) (apijson *
 	return
 }
 
+type BaseController struct {
+	beego.Controller
+}
+
 // CurrentUser 提取当前登陆用户
-func (c *UserController) CurrentUser() (*models.User, bool) {
+func (c *BaseController) CurrentUser() (*models.User, bool) {
 	bearerToken := c.Ctx.Input.Header(HttpAuthKey)
 	if len(bearerToken) == 0 {
 		c.Data["json"] = RetResource(false, types.UserToKenCheckError, nil, "您还没有登陆，请登陆")

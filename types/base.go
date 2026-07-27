@@ -36,4 +36,6 @@ const (
 	BindPhoneError            = 4029 // 没有绑定手机号
 	BindEmailError            = 4030 // 没有绑定邮箱
 	UserNotLogin              = 4031 // 用户没有登陆
+	UpdateUserInfoFail        = 4037 // 更新用户信息失败
+	UserAuthError             = 4051 // 实名认证失败
 )

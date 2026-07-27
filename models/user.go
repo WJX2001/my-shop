@@ -436,3 +436,31 @@ func uidCode() (string, string) {
 	b, _ := inviteID.MarshalBinary() // []byte, len=16
 	return tokenID.String(), base64.RawURLEncoding.EncodeToString(b)
 }
+
+// UpdateUserInfo 修改用户信息
+func UpdateUserInfo(id int64, user_info type_user.UpdateUserInfoCheck) (success bool, code int, err error) {
+	var user_data User
+	if err := orm.NewOrm().QueryTable(User{}).RelatedSel().Filter("id", id).One(&user_data); err != nil {
+		return false, types.UserIsNotExist, errors.New("用户不存在")
+	}
+	if user_info.UserName != "" {
+		user_data.UserName = user_info.UserName
+		err := user_data.Update("user_name")
+		if err != nil {
+			return false, types.UpdateUserInfoFail, errors.New("更新用户信息失败")
+		}
+	}
+	if user_info.ImageId > 0 {
+		var imgfile ImageFile
+		img, code, err := imgfile.GetImageById(user_info.ImageId)
+		if err != nil {
+			return false, code, errors.New("文件不存在")
+		}
+		user_data.Avatar = img.Url
+		err = user_data.Update()
+		if err != nil {
+			return false, types.UpdateUserInfoFail, errors.New("更新用户信息失败")
+		}
+	}
+	return true, types.ReturnSuccess, nil
+}

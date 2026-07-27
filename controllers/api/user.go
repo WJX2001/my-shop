@@ -3,8 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/beego/beego/v2/core/logs"
-	beego "github.com/beego/beego/v2/server/web"
 	"my-ganji-app/common"
 	"my-ganji-app/common/utils"
 	"my-ganji-app/models"
@@ -14,10 +12,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/beego/beego/v2/core/logs"
+	beego "github.com/beego/beego/v2/server/web"
 )
 
 type UserController struct {
-	beego.Controller
+	BaseController
 }
 
 // SendPhoneCode 发送手机号验证码

@@ -71,6 +71,7 @@ func init() {
 		new(UserIntegral),
 		new(UserCoupon),
 		new(CrfrUserTree),
+		new(ImageFile),
 	)
 	key, err := beego.AppConfig.String("runmode")
 	if err != nil {

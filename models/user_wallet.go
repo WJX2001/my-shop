@@ -17,9 +17,22 @@ func (u *UserWallet) TableName() string {
 	return common.TableName("user_wallet")
 }
 
+func (u *UserWallet) Query() orm.QuerySeter {
+	return orm.NewOrm().QueryTable(u)
+}
+
 func (u *UserWallet) Insert() error {
 	if _, err := orm.NewOrm().Insert(u); err != nil {
 		return err
 	}
 	return nil
+}
+
+func GetWalletByUserId(user_id int64) (*UserWallet, error) {
+	var user_w UserWallet
+	err := user_w.Query().Filter("UserId", user_id).Limit(1).One(&user_w)
+	if err != nil {
+		return nil, err
+	}
+	return &user_w, nil
 }
