@@ -1,5 +1,7 @@
 package types
 
+import "github.com/pkg/errors"
+
 // 错误码定义
 const (
 	ReturnSuccess             = 2000 // 成功返回
@@ -8,6 +10,8 @@ const (
 	InvalidVerifyWay          = 3002 // 无效的验证方式
 	ParamEmptyError           = 3003 // 传入参数为空
 	UserToKenCheckError       = 3004 // 用户 Token 校验失败
+	PageIsZero                = 4000 // 页码 0
+	PageSizeIsZero            = 4001 // 每页数量 0
 	PhoneFormatError          = 4003 // 手机号码格式不正确
 	PhoneVerifyCodeEmptyError = 4004 // 手机号码验证码为空
 	PhoneVerifyCodeError      = 4005 // 手机号码验证码不正确
@@ -42,7 +46,23 @@ const (
 	CreateFilePathError       = 4035 // 创建文件路径失败
 	SaveFileFail              = 4036 // 保存文件失败
 	UpdateUserInfoFail        = 4037 // 更新用户信息失败
+	GetMerchantListFail       = 4045 // 获取商家列表失败
 	UserAuthError             = 4051 // 实名认证失败
 	FileAlreadyUpload         = 5058 // 图片已经上传过了
 	InvalidConfig             = 6001 // 无效的配置参数
 )
+
+type PageSizeData struct {
+	Page     int `json:"page"`
+	PageSize int `json:"page_size"`
+}
+
+func (ps PageSizeData) PageSizeDataParamValidate() (int, error) {
+	if ps.Page == 0 {
+		return PageIsZero, errors.New("page 不能为0")
+	}
+	if ps.PageSize == 0 {
+		return PageSizeIsZero, errors.New("pageSize 不能为 0")
+	}
+	return ReturnSuccess, nil
+}

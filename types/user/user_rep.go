@@ -25,3 +25,14 @@ type UserInfoRet struct {
 	WeiChat     string  `json:"wei_chat"`
 	QQ          string  `json:"qq"`
 }
+
+type UserAuthRet struct {
+	Id         int64  `json:"id"`
+	Phone      string `json:"phone"`
+	UserName   string `json:"user_name"`
+	RealName   string `json:"real_name"`
+	IdCard     string `json:"id_card"`
+	CardImgPos string `json:"card_img_pos"`
+	CardImgNeg string `json:"card_img_neg"`
+	IsAuth     int8   `json:"is_auth"`
+}

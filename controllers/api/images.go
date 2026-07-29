@@ -19,6 +19,12 @@ type Sizer interface {
 	Size() int64
 }
 
+// UploadFiles 实现上传图片功能
+// 实现本地预览的流程：
+// 1. 保存到本地目录 upload_image
+// 2. 返回可返回的 URL
+// 3. Beego SetStaticPath 把 /static 映射到该目录
+// 4. 浏览器打开 URL 即可预览
 func (c *ImageController) UploadFiles() {
 	f, h, err := c.GetFile("file")
 	if err != nil {

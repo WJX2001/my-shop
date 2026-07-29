@@ -83,3 +83,26 @@ func (uic *UserInfoController) UpdateUserInfo() {
 	uic.ServeJSON()
 	return
 }
+
+// IsAuth 实名认证
+func (uic *UserInfoController) IsAuth() {
+	user, ok := uic.CurrentUser()
+	if !ok {
+		return
+	}
+	var userInfo models.UserInfo
+	uinf, _ := userInfo.GetUserInfoByUserId(user.Id)
+	auth_data := type_user.UserAuthRet{
+		Id:         user.Id,
+		Phone:      user.Phone,
+		UserName:   user.UserName,
+		RealName:   uinf.RealName,
+		IdCard:     uinf.IdCard,
+		CardImgPos: uinf.CardImgPos,
+		CardImgNeg: uinf.CardImgNeg,
+		IsAuth:     user.IsAuth,
+	}
+	uic.Data["json"] = RetResource(true, types.ReturnSuccess, auth_data, "获取用户认证信息成功")
+	uic.ServeJSON()
+	return
+}
