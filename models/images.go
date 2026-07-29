@@ -21,6 +21,14 @@ func (imf *ImageFile) Query() orm.QuerySeter {
 	return orm.NewOrm().QueryTable(imf)
 }
 
+func (imf *ImageFile) Insert() (error, int64) {
+	id, err := orm.NewOrm().Insert(imf)
+	if err != nil {
+		return err, 0
+	}
+	return nil, id
+}
+
 func (imf *ImageFile) GetImageById(id int64) (*ImageFile, int, error) {
 	var image ImageFile
 	err := image.Query().Filter("Id", id).One(&image)

@@ -36,6 +36,13 @@ const (
 	BindPhoneError            = 4029 // 没有绑定手机号
 	BindEmailError            = 4030 // 没有绑定邮箱
 	UserNotLogin              = 4031 // 用户没有登陆
+	GetImagesFileFail         = 4032 // 获取文件失败
+	FileFormatError           = 4033 // 文件格式不符合要求
+	FileIsBig                 = 4034 // 文件太大
+	CreateFilePathError       = 4035 // 创建文件路径失败
+	SaveFileFail              = 4036 // 保存文件失败
 	UpdateUserInfoFail        = 4037 // 更新用户信息失败
 	UserAuthError             = 4051 // 实名认证失败
+	FileAlreadyUpload         = 5058 // 图片已经上传过了
+	InvalidConfig             = 6001 // 无效的配置参数
 )
