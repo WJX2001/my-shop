@@ -73,6 +73,7 @@ func init() {
 		new(CrfrUserTree),
 		new(ImageFile),
 		new(Merchant),
+		new(Goods),
 	)
 	key, err := beego.AppConfig.String("runmode")
 	if err != nil {

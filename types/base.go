@@ -10,6 +10,7 @@ const (
 	InvalidVerifyWay          = 3002 // 无效的验证方式
 	ParamEmptyError           = 3003 // 传入参数为空
 	UserToKenCheckError       = 3004 // 用户 Token 校验失败
+	ParamLessZero             = 3005 // 参数小于 0
 	PageIsZero                = 4000 // 页码 0
 	PageSizeIsZero            = 4001 // 每页数量 0
 	PhoneFormatError          = 4003 // 手机号码格式不正确

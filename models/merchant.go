@@ -57,3 +57,11 @@ func GetMerchantList(page, pageSize int, merct_name string, address string) ([]*
 	}
 	return merchant_list, total, nil
 }
+
+func GetMerchantDetail(id int64) (*Merchant, int, error) {
+	var merchant Merchant
+	if err := orm.NewOrm().QueryTable(Merchant{}).Filter("Id", id).One(&merchant); err != nil {
+		return nil, types.SystemDbErr, errors.New("数据库查询失败，请联系客服处理")
+	}
+	return &merchant, types.ReturnSuccess, nil
+}
