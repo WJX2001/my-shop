@@ -35,7 +35,8 @@ func init() {
 			beego.NSRouter("/merchantList", &api.MerchantController{}, "post:MerchantList"),
 			beego.NSRouter("/merchantDetail", &api.MerchantController{}, "post:MerchantDetail")),
 		beego.NSNamespace("/goods",
-			beego.NSRouter("/goodsCategoryList", &api.GoodsController{}, "post:GoodsCategoryList")),
+			beego.NSRouter("/goodsCategoryList", &api.GoodsController{}, "post:GoodsCategoryList"),
+			beego.NSRouter("/merchantGoodsList", &api.GoodsController{}, "post:MerchantGoodsList")),
 	)
 
 	beego.AddNamespace(apiPath)

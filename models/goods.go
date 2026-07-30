@@ -4,6 +4,7 @@ import (
 	"github.com/beego/beego/v2/adapter/orm"
 	"github.com/pkg/errors"
 	"my-ganji-app/common"
+	"my-ganji-app/types"
 )
 
 type Goods struct {
@@ -75,4 +76,26 @@ func GetCategoryGoodsList(page, pageSize int, first_level_id, last_level_id int6
 		}
 		return goods_list, total, nil
 	}
+}
+
+// 0:全部 1:活动优选 2:爆款产品
+func GetMerchantGoodsList(page, pageSize int, merchant_id int64, query_way int8) ([]*Goods, int64, error) {
+	offset := (page - 1) * pageSize
+	goods_list := make([]*Goods, 0)
+	query := orm.NewOrm().QueryTable(Goods{}).Filter("MerchantId", merchant_id)
+	if query_way == 0 {
+		query = query
+	} else if query_way == 1 {
+		query = query.Filter("IsDiscount", 1)
+	} else if query_way == 2 {
+		query = query.Filter("IsHot", 1).OrderBy("-IsDiscount")
+	} else {
+		return nil, types.InvalidVerifyWay, errors.New("没有这种查询方式")
+	}
+	total, _ := query.Count()
+	_, err := query.Limit(pageSize, offset).All(&goods_list)
+	if err != nil {
+		return nil, 0, errors.New("查询数据库失败")
+	}
+	return goods_list, total, nil
 }
