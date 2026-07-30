@@ -47,6 +47,7 @@ const (
 	CreateFilePathError       = 4035 // 创建文件路径失败
 	SaveFileFail              = 4036 // 保存文件失败
 	UpdateUserInfoFail        = 4037 // 更新用户信息失败
+	GetGoodsListFail          = 4044 // 获取商品列表失败
 	GetMerchantListFail       = 4045 // 获取商家列表失败
 	UserAuthError             = 4051 // 实名认证失败
 	FileAlreadyUpload         = 5058 // 图片已经上传过了

@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/beego/beego/v2/adapter/orm"
+	"github.com/pkg/errors"
 	"my-ganji-app/common"
 )
 
@@ -49,4 +50,29 @@ func GetMerchantGoodsNums(merChant_id int64) int64 {
 		return 0
 	}
 	return total
+}
+
+func GetCategoryGoodsList(page, pageSize int, first_level_id, last_level_id int64) ([]*Goods, int64, error) {
+	offset := (page - 1) * pageSize
+	goods_list := make([]*Goods, 0)
+	if first_level_id <= 0 {
+		query_dis := orm.NewOrm().QueryTable(Goods{}).Filter("IsDiscount", 1).Filter("IsGroup", 0).Filter("IsIntegral", 0).OrderBy("-SellNums")
+		total, _ := query_dis.Count()
+		_, err := query_dis.Limit(pageSize, offset).All(&goods_list)
+		if err != nil {
+			return nil, 0, errors.New("查询数据库失败")
+		}
+		return goods_list, total, nil
+	} else {
+		query := orm.NewOrm().QueryTable(Goods{}).Filter("GoodsCatId", first_level_id).Filter("IsGroup", 0).Filter("IsIntegral", 0).OrderBy("-SellNums")
+		if last_level_id > 0 {
+			query.Filter("GoodsLastCatId", last_level_id).OrderBy("-SellNums")
+		}
+		total, _ := query.Count()
+		_, err := query.Limit(pageSize, offset).All(&goods_list)
+		if err != nil {
+			return nil, 0, errors.New("查询数据库失败")
+		}
+		return goods_list, total, nil
+	}
 }

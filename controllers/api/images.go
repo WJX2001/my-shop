@@ -34,6 +34,7 @@ func (c *ImageController) UploadFiles() {
 	}
 	defer f.Close()
 
+	// 文件格式校验
 	ext := strings.ToLower(path.Ext(h.Filename))
 	allowExtMap := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".gif": true}
 	if !allowExtMap[ext] {
@@ -42,6 +43,7 @@ func (c *ImageController) UploadFiles() {
 		return
 	}
 
+	// 文件大小相关
 	const maxFileBytes int64 = 1 << 24 //  16MB
 	fileSizer, ok := f.(Sizer)
 	if !ok {
