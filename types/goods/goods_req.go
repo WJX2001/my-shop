@@ -44,3 +44,19 @@ func (mglc MerchantGoodsListCheck) MerchantGoodsListCheckParamValidate() (int, e
 	}
 	return types.ReturnSuccess, nil
 }
+
+type LTGoodsListCheck struct {
+	types.PageSizeData
+}
+
+type GoodsDetailCheck struct {
+	UserId  int64 `json:"user_id"`
+	GoodsId int64 `json:"goods_id"`
+}
+
+func (gdc GoodsDetailCheck) GoodsDetailCheckParamValidate() (int, error) {
+	if gdc.GoodsId < 0 {
+		return types.ParamLessZero, errors.New("商品ID不能小于0")
+	}
+	return types.ReturnSuccess, nil
+}

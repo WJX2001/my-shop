@@ -70,10 +70,13 @@ func init() {
 		new(UserWallet),
 		new(UserIntegral),
 		new(UserCoupon),
+		new(UserAddress),
 		new(CrfrUserTree),
 		new(ImageFile),
 		new(Merchant),
 		new(Goods),
+		new(GoodsImage),
+		new(GoodsType),
 	)
 	key, err := beego.AppConfig.String("runmode")
 	if err != nil {

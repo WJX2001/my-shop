@@ -9,7 +9,7 @@ import (
 
 type Goods struct {
 	BaseModel
-	Id             int     `orm:"column(id);auto" json:"id" form:"id"`
+	Id             int64   `orm:"column(id);auto;size(11)" json:"id" form:"id"`
 	GoodsCatId     int64   `json:"goods_cat_id"`                                                                            // 商品所属一级分类ID
 	GoodsLastCatId int64   `json:"goods_level_cat_id"`                                                                      // 商品所属最后一级分类ID
 	GoodsMark      string  `orm:"size(512);index" json:"goods_mark"`                                                        // 商品备注
@@ -98,4 +98,36 @@ func GetMerchantGoodsList(page, pageSize int, merchant_id int64, query_way int8)
 		return nil, 0, errors.New("查询数据库失败")
 	}
 	return goods_list, total, nil
+}
+
+func GetLtGoodsList(page, pageSize int) ([]*Goods, int64, error) {
+	offset := (page - 1) * pageSize
+	goods_list := make([]*Goods, 0)
+	query := orm.NewOrm().QueryTable(Goods{}).Filter("IsLimitTime", 1)
+	total, _ := query.Count()
+	_, err := query.Limit(pageSize, offset).All(&goods_list)
+	if err != nil {
+		return nil, 0, errors.New("查询数据库失败")
+	}
+	return goods_list, total, nil
+}
+
+func GetOrderDownHotGoodsList(page, pageSize int) ([]*Goods, int64, error) {
+	offset := (page - 1) * pageSize
+	goods_list := make([]*Goods, 0)
+	query := orm.NewOrm().QueryTable(Goods{}).Filter("IsHot", 1)
+	total, _ := query.Count()
+	_, err := query.Limit(pageSize, offset).All(&goods_list)
+	if err != nil {
+		return nil, 0, errors.New("查询数据库失败")
+	}
+	return goods_list, total, nil
+}
+
+func GetGoodsDetail(id int64) (*Goods, int, error) {
+	var goods Goods
+	if err := orm.NewOrm().QueryTable(Goods{}).Filter("Id", id).RelatedSel().One(&goods); err != nil {
+		return nil, types.SystemDbErr, errors.New("数据库查询失败，请联系客服处理")
+	}
+	return &goods, types.ReturnSuccess, nil
 }
