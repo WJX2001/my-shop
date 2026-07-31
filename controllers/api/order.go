@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	beego "github.com/beego/beego/v2/server/web"
 
 	"github.com/google/uuid"
 	"my-ganji-app/models"
@@ -26,7 +27,7 @@ func (c *OrderController) CreateOrder() {
 
 	var create_order type_order.CreateOrderCheck
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &create_order); err != nil {
-		c.Data["json"] = RetResource(false, types.InvalidFormatError, nil, "无效的参数格式，请联系客服处理")
+		c.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服处理")
 		c.ServeJSON()
 		return
 	}
@@ -116,4 +117,67 @@ func (c *OrderController) CreateOrder() {
 	}
 	c.Data["json"] = RetResource(true, types.ReturnSuccess, map[string]interface{}{"id": id}, "创建订单成功")
 	c.ServeJSON()
+}
+
+// OrderList 订单列表 OrderList
+func (c *OrderController) OrderList() {
+	u_tk, ok := c.CurrentUser()
+	if !ok {
+		return
+	}
+	var order_lst type_order.OrderListCheck
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &order_lst); err != nil {
+		c.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式,请联系客服处理")
+		c.ServeJSON()
+		return
+	}
+	if code, err := order_lst.OrderListCheckParamValidate(); err != nil {
+		c.Data["json"] = RetResource(false, code, err, err.Error())
+		c.ServeJSON()
+		return
+	}
+	ols, total, err := models.GetGoodsOrderList(order_lst.Page, order_lst.PageSize, u_tk.Id, order_lst.OrderStatus)
+	if err != nil {
+		c.Data["json"] = RetResource(false, types.SystemDbErr, err, err.Error())
+		c.ServeJSON()
+		return
+	}
+	var olst_ret []type_order.OrderListRet
+	img_path, _ := beego.AppConfig.String("img_root_path")
+	for _, value := range ols {
+		m, _, _ := models.GetMerchantDetail(value.MerchantId)
+		gds, _, _ := models.GetGoodsDetail(value.GoodsId)
+		var goods_last_price float64
+		if gds.IsDiscount == 0 {
+			goods_last_price = gds.GoodsPrice
+		} else {
+			goods_last_price = gds.GoodsDisPrice
+		}
+		ordr := type_order.OrderListRet{
+			MerchantId:    m.Id,
+			MerchantName:  m.MerchantName,
+			MerchantPhone: m.Phone,
+			OrderId:       value.Id,
+			GoodsName:     value.GoodsName,
+			GoodsLogo:     img_path + value.Logo,
+			GoodsPrice:    goods_last_price,
+			PayIntegral:   value.PayIntegral,
+			SendIntegral:  gds.SendIntegral,
+			OrderStatus:   value.OrderStatus,
+			BuyNums:       value.BuyNums,
+			PayAmount:     value.PayAmount,
+			IsCancle:      value.IsCancle,
+			IsComment:     value.IsComment,
+			IsDiscount:    gds.IsDiscount,
+			IsIntegral:    gds.IsIntegral,
+		}
+		olst_ret = append(olst_ret, ordr)
+	}
+	data := map[string]interface{}{
+		"total":     total,
+		"order_lst": olst_ret,
+	}
+	c.Data["json"] = RetResource(true, types.ReturnSuccess, data, "获取订单列表成功")
+	c.ServeJSON()
+	return
 }

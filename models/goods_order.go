@@ -2,7 +2,9 @@ package models
 
 import (
 	"github.com/beego/beego/v2/adapter/orm"
+	"github.com/pkg/errors"
 	"my-ganji-app/common"
+	"my-ganji-app/types"
 	"time"
 )
 
@@ -49,4 +51,19 @@ func (g *GoodsOrder) Insert() (error, int64) {
 		return err, 0
 	}
 	return nil, id
+}
+
+func GetGoodsOrderList(page, pageSize int, user_id int64, status int8) ([]*GoodsOrder, int64, error) {
+	offset := (page - 1) * pageSize
+	gds_order_list := make([]*GoodsOrder, 0)
+	query := orm.NewOrm().QueryTable(GoodsOrder{}).Filter("UserId", user_id).OrderBy("-id")
+	if status >= 0 && status <= 5 {
+		query = query.Filter("order_status", status)
+	}
+	total, _ := query.Count()
+	_, err := query.Limit(pageSize, offset).All(&gds_order_list)
+	if err != nil {
+		return nil, types.SystemDbErr, errors.New("查询数据库失败")
+	}
+	return gds_order_list, total, nil
 }

@@ -49,6 +49,7 @@ func init() {
 		),
 		beego.NSNamespace("/goodsOrder",
 			beego.NSRouter("/createOrder", &api.OrderController{}, "post:CreateOrder"),
+			beego.NSRouter("/orderList", &api.OrderController{}, "post:OrderList"),
 		),
 	)
 

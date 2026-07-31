@@ -32,3 +32,23 @@ func (c CreateOrderCheck) CreateOrderCheckParamValidate() (int, error) {
 	}
 	return types.ReturnSuccess, nil
 }
+
+type OrderListCheck struct {
+	types.PageSizeData
+	UserId      int64 `json:"user_id"`
+	OrderStatus int8  `json:"order_status"` // 0: 未支付，1: 支付中，2：支付成功；3：支付失败 4：已发货；5：已经收货; 6: 全部
+}
+
+func (o OrderListCheck) OrderListCheckParamValidate() (int, error) {
+	code, err := o.PageSizeDataParamValidate()
+	if err != nil {
+		return code, err
+	}
+	if o.UserId <= 0 {
+		return types.ParamLessZero, errors.New("用户ID小于等于0")
+	}
+	if o.OrderStatus < 0 || o.OrderStatus > 6 {
+		return types.InvalidFormatError, errors.New("查看的订单状态无效")
+	}
+	return types.ReturnSuccess, nil
+}
