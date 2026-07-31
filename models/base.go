@@ -78,6 +78,7 @@ func init() {
 		new(GoodsImage),
 		new(GoodsType),
 		new(GoodsCar),
+		new(GoodsOrder),
 	)
 	key, err := beego.AppConfig.String("runmode")
 	if err != nil {

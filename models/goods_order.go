@@ -1,0 +1,52 @@
+package models
+
+import (
+	"github.com/beego/beego/v2/adapter/orm"
+	"my-ganji-app/common"
+	"time"
+)
+
+type GoodsOrder struct {
+	BaseModel
+	Id            int64      `json:"id"`
+	GoodsId       int64      `orm:"size(64);index" json:"goods_id"`                                                // 商品 ID
+	MerchantId    int64      `orm:"size(64);index" json:"merchant_id"`                                             // 商户 ID
+	AddressId     int64      `orm:"size(64);index" json:"address_id"`                                              // 地址 ID
+	GoodsTypes    string     `orm:"size(512)" json:"goods_types"`                                                  // 商品属性
+	GoodsTitle    string     `orm:"size(64)" json:"goods_title"`                                                   // 商品标题
+	GoodsName     string     `orm:"size(512);index" json:"goods_name" form:"goods_name"`                           // 产品名称
+	Logo          string     `orm:"size(150);default(/static/upload/default/user-default-60x60.png)" json:"image"` // 商品Logo
+	UserId        int64      `orm:"size(64);index" json:"user_id"`                                                 // 购买用户
+	BuyNums       int64      `orm:"default(0)" json:"buy_nums"`                                                    // 购买数量
+	PayWay        int8       `orm:"index" json:"pay_way"`                                                          // 0:积分兑换，1:账户余额支付，2:微信支付；3:支付宝支付; 4:未知支付方式
+	PayAmount     float64    `orm:"default(0);digits(22);decimals(8)" json:"pay_amount"`                           // 支付金额
+	PayCoupon     float64    `orm:"default(0);digits(22);decimals(8)" json:"pay_coupon"`                           // 优惠券抵扣金额
+	PayIntegral   float64    `orm:"default(0);digits(22);decimals(8)" json:"pay_integral"`                         // 支付的积分
+	SendIntegral  float64    `orm:"default(1);digits(22);decimals(8)" json:"send_integral"`                        // 赠送积分
+	OrderNumber   string     `orm:"size(64);index" json:"order_number"`                                            // 订单号
+	Logistics     string     `orm:"size(64);index;default('')" json:"logistics"`                                   // 物流公司
+	ShipNumber    string     `orm:"size(64);index;default('')" json:"ship_number"`                                 // 运单号
+	OrderStatus   int8       `orm:"index" json:"order_status"`                                                     // 0: 未支付，1: 支付中，2：支付成功；3：支付失败 4：已发货；5：已完成
+	FailureReason string     `json:"failure_reason"`                                                               // 失败原因
+	PayAt         *time.Time `orm:"type(datetime);null" json:"pay_at"`                                             // 支付时间
+	DealMerchant  string     `orm:"default('')" json:"deal_user"`                                                  // 处理商家
+	DealAt        time.Time  `orm:"null;type(datetime);" json:"deal_at"`                                           // 处理时间
+	IsCancle      int8       `orm:"default(0);index" json:"is_cancle"`                                             // 0 正常；1.退货; 2:换货; 3:退货成功; 4:换货成功
+	IsComment     int8       `orm:"default(0);index" json:"is_comment"`                                            // 0 正常；1.已评价
+	BatchId       string     `orm:"size(128);index" json:"batch_id"`                                               // 订单批 ID
+	IsReward      int8       `orm:"default(0);index" json:"is_reward"`                                             // 0 正常；1.已计算直间邀请奖励奖励；2:已计算管理奖励
+	IsBuild       int8       `orm:"default(0);index" json:"is_build"`                                              // 0 正常；1.已构建
+	IsStatic      int8       `orm:"default(0);index" json:"is_static"`                                             // 0 正常；1.已统计
+}
+
+func (g *GoodsOrder) TableName() string {
+	return common.TableName("goods_order")
+}
+
+func (g *GoodsOrder) Insert() (error, int64) {
+	id, err := orm.NewOrm().Insert(g)
+	if err != nil {
+		return err, 0
+	}
+	return nil, id
+}

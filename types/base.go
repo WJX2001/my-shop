@@ -53,6 +53,7 @@ const (
 	InvalidGoodsPrice         = 4047 // 无效的商品价格
 	UserAuthError             = 4051 // 实名认证失败
 	FileAlreadyUpload         = 5058 // 图片已经上传过了
+	IntegralNotEnough         = 5065
 	InvalidConfig             = 6001 // 无效的配置参数
 )
 
