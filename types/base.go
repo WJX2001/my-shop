@@ -49,6 +49,8 @@ const (
 	UpdateUserInfoFail        = 4037 // 更新用户信息失败
 	GetGoodsListFail          = 4044 // 获取商品列表失败
 	GetMerchantListFail       = 4045 // 获取商家列表失败
+	UserTokenUserIdNotEqual   = 4046 // 用户ID 和 Token 不符合
+	InvalidGoodsPrice         = 4047 // 无效的商品价格
 	UserAuthError             = 4051 // 实名认证失败
 	FileAlreadyUpload         = 5058 // 图片已经上传过了
 	InvalidConfig             = 6001 // 无效的配置参数
