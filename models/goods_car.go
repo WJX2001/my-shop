@@ -61,3 +61,11 @@ func GetGoodsCarDetailByGoodsId(user_id, goods_id int64) (*GoodsCar, int, error)
 	}
 	return &goods_car, types.ReturnSuccess, nil
 }
+
+func GetGoodsCarDetail(id int64) (*GoodsCar, int, error) {
+	goods_car := GoodsCar{}
+	if err := orm.NewOrm().QueryTable(GoodsCar{}).Filter("Id", id).RelatedSel().One(&goods_car); err != nil {
+		return nil, types.SystemDbErr, errors.New("数据库查询失败，请联系客服处理")
+	}
+	return &goods_car, types.ReturnSuccess, nil
+}

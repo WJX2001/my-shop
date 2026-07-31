@@ -6,13 +6,11 @@ import (
 )
 
 type AddGoodCarCheck struct {
-	GoodsId    int64   `json:"goods_id"`
-	UserId     int64   `json:"user_id"`
-	AddressId  int64   `json:"address_id"`
-	BuyNums    int64   `json:"buy_nums"`
-	PayAmount  float64 `json:"pay_amount"`
-	GoodsTypes string  `json:"goods_types"` // 商品属性
-	IsDis      int8    `json:"is_dis"`      // 1: 非打折商品 2: 打折商品
+	GoodsId    int64  `json:"goods_id"`
+	UserId     int64  `json:"user_id"`
+	AddressId  int64  `json:"address_id"`
+	BuyNums    int64  `json:"buy_nums"`
+	GoodsTypes string `json:"goods_types"` // 商品属性
 }
 
 func (a AddGoodCarCheck) AddGoodCarCheckParamValidate() (int, error) {
@@ -28,8 +26,28 @@ func (a AddGoodCarCheck) AddGoodCarCheckParamValidate() (int, error) {
 	if a.BuyNums <= 0 {
 		return types.ParamLessZero, errors.New("购买数量不能小于等于 0")
 	}
-	if a.PayAmount <= 0 {
-		return types.ParamLessZero, errors.New("支付金额不能小于等于 0")
+	return types.ReturnSuccess, nil
+}
+
+type EditGoodCarCheck struct {
+	GoodsId    int64 `json:"goods_id"`
+	GoodsCarId int64 `json:"goods_car_id"`
+	UserId     int64 `json:"user_id"`
+	BuyNums    int64 `json:"buy_nums"`
+}
+
+func (e EditGoodCarCheck) EditGoodCarCheckParamValidate() (int, error) {
+	if e.GoodsId <= 0 {
+		return types.ParamLessZero, errors.New("商品 ID 不能小于等于 0")
+	}
+	if e.GoodsCarId <= 0 {
+		return types.ParamLessZero, errors.New("购物车ID 不能小于等于 0")
+	}
+	if e.UserId <= 0 {
+		return types.ParamLessZero, errors.New("用户 ID 不能小于等于 0")
+	}
+	if e.BuyNums <= 0 {
+		return types.ParamLessZero, errors.New("购买数量不能小于等于 0")
 	}
 	return types.ReturnSuccess, nil
 }
