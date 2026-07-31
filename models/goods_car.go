@@ -40,6 +40,18 @@ func (c *GoodsCar) Insert() error {
 	return nil
 }
 
+func GetGoodsCarList(page, pageSize int, user_id int64) ([]*GoodsCar, int64, error) {
+	offset := (page - 1) * pageSize
+	gds_car_list := make([]*GoodsCar, 0)
+	query := orm.NewOrm().QueryTable(GoodsCar{}).Filter("UserId", user_id)
+	total, _ := query.Count()
+	_, err := query.Limit(pageSize, offset).All(&gds_car_list)
+	if err != nil {
+		return nil, types.SystemDbErr, errors.New("查询数据失败")
+	}
+	return gds_car_list, total, nil
+}
+
 func GetGoodsCarDetailByGoodsId(user_id, goods_id int64) (*GoodsCar, int, error) {
 	goods_car := GoodsCar{}
 	if err := orm.NewOrm().QueryTable(GoodsCar{}).

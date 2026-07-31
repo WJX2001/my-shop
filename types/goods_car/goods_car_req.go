@@ -33,3 +33,15 @@ func (a AddGoodCarCheck) AddGoodCarCheckParamValidate() (int, error) {
 	}
 	return types.ReturnSuccess, nil
 }
+
+type GoodCarListCheck struct {
+	types.PageSizeData
+}
+
+func (g GoodCarListCheck) GoodCarListCheckParamValidate() (int, error) {
+	code, err := g.PageSizeDataParamValidate()
+	if err != nil {
+		return code, err
+	}
+	return types.ReturnSuccess, nil
+}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	beego "github.com/beego/beego/v2/server/web"
 	"my-ganji-app/models"
 	"my-ganji-app/types"
 	type_goods_car "my-ganji-app/types/goods_car"
@@ -92,4 +93,64 @@ func (c *GoodsCarController) AddGoodsToCar() {
 		c.ServeJSON()
 		return
 	}
+}
+
+// GoodsCarList 获取购物车列表
+func (c *GoodsCarController) GoodsCarList() {
+	ut, ok := c.CurrentUser()
+	if !ok {
+		return
+	}
+
+	goods_car_lst := type_goods_car.GoodCarListCheck{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &goods_car_lst); err != nil {
+		c.Data["json"] = RetResource(false, types.InvalidFormatError, nil, "无效的参数格式，请联系客服处理")
+		c.ServeJSON()
+		return
+	}
+	if code, err := goods_car_lst.GoodCarListCheckParamValidate(); err != nil {
+		c.Data["json"] = RetResource(false, code, nil, err.Error())
+		c.ServeJSON()
+		return
+	}
+	goods_car_list, total, err := models.GetGoodsCarList(goods_car_lst.Page, goods_car_lst.PageSize, ut.Id)
+	if err != nil {
+		c.Data["json"] = RetResource(false, types.GetGoodsListFail, nil, err.Error())
+		c.ServeJSON()
+		return
+	}
+	var gds_car_lst []type_goods_car.GoodsCarList
+	img_path, _ := beego.AppConfig.String("img_root_path")
+	for _, value := range goods_car_list {
+		gds, _, _ := models.GetGoodsDetail(value.GoodsId)
+		mct, _, _ := models.GetMerchantDetail(gds.MerchantId)
+		var goods_price float64
+		if gds.IsDiscount == 0 {
+			goods_price = gds.GoodsPrice
+		} else {
+			goods_price = gds.GoodsDisPrice
+		}
+		gdsc := type_goods_car.GoodsCarList{
+			MerchantId:   gds.MerchantId,
+			MerchantName: mct.MerchantName,
+			GoodsCarId:   value.Id,
+			GoodsId:      gds.Id,
+			GoodsLogo:    img_path + value.Logo,
+			GoodsTitle:   gds.Title,
+			GoodsMark:    gds.GoodsMark,
+			GoodsName:    gds.GoodsName,
+			GoodsPrice:   goods_price,
+			UserId:       value.UserId,
+			BuyNums:      value.BuyNums,
+			PayAmount:    value.PayAmount,
+		}
+		gds_car_lst = append(gds_car_lst, gdsc)
+	}
+	data := map[string]interface{}{
+		"total":       total,
+		"gds_car_lst": gds_car_lst,
+	}
+	c.Data["json"] = RetResource(true, types.ReturnSuccess, data, "获取购物车列表成功")
+	c.ServeJSON()
+	return
 }
