@@ -192,3 +192,34 @@ func (c *GoodsCarController) GoodsCarList() {
 	c.ServeJSON()
 	return
 }
+
+func (c *GoodsCarController) DelGoodsCar() {
+	_, ok := c.CurrentUser()
+	if !ok {
+		return
+	}
+	goods_car_del := type_goods_car.DelGoodCarCheck{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &goods_car_del); err != nil {
+		c.Data["json"] = RetResource(false, types.InvalidFormatError, nil, "无效的参数格式，请联系客服处理")
+		c.ServeJSON()
+		return
+	}
+	if code, err := goods_car_del.DelGoodCarCheckParamValidate(); err != nil {
+		c.Data["json"] = RetResource(false, code, nil, err.Error())
+		c.ServeJSON()
+		return
+	}
+	ids_list := goods_car_del.GoodsIds
+	for i := 0; i < len(ids_list); i++ {
+		gcr, _, _ := models.GetGoodsCarDetail(ids_list[i])
+		err := gcr.Delete()
+		if err != nil {
+			c.Data["json"] = RetResource(true, types.SystemDbErr, nil, "删除购物车操作数据库失败")
+			c.ServeJSON()
+			return
+		}
+	}
+	c.Data["json"] = RetResource(true, types.ReturnSuccess, nil, "删除购物车成功")
+	c.ServeJSON()
+	return
+}

@@ -40,6 +40,13 @@ func (c *GoodsCar) Insert() error {
 	return nil
 }
 
+func (c *GoodsCar) Delete() error {
+	if _, err := orm.NewOrm().Delete(c); err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetGoodsCarList(page, pageSize int, user_id int64) ([]*GoodsCar, int64, error) {
 	offset := (page - 1) * pageSize
 	gds_car_list := make([]*GoodsCar, 0)

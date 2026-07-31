@@ -63,3 +63,14 @@ func (g GoodCarListCheck) GoodCarListCheckParamValidate() (int, error) {
 	}
 	return types.ReturnSuccess, nil
 }
+
+type DelGoodCarCheck struct {
+	GoodsIds []int64 `json:"goods_ids"`
+}
+
+func (c DelGoodCarCheck) DelGoodCarCheckParamValidate() (int, error) {
+	if c.GoodsIds == nil {
+		return types.ParamLessZero, errors.New("商品 ID 数组长度不能小于等于0")
+	}
+	return types.ReturnSuccess, nil
+}

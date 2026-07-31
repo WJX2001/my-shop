@@ -45,6 +45,7 @@ func init() {
 			beego.NSRouter("/addGoodsToCar", &api.GoodsCarController{}, "post:AddGoodsToCar"),
 			beego.NSRouter("/goodsCarList", &api.GoodsCarController{}, "post:GoodsCarList"),
 			beego.NSRouter("/editGoodsCar", &api.GoodsCarController{}, "post:EditGoodsCar"),
+			beego.NSRouter("/delGoodsCar", &api.GoodsCarController{}, "post:DelGoodsCar"),
 		),
 	)
 
