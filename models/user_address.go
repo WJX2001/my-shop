@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/beego/beego/v2/adapter/orm"
 	"github.com/pkg/errors"
+	"my-ganji-app/common"
 	"my-ganji-app/types"
 	"time"
 )
@@ -23,10 +24,29 @@ func (u *UserAddress) SearchField() []string {
 	return []string{"username", "phone", "user_id"}
 }
 
+func (u *UserAddress) TableName() string {
+	return common.TableName("user_address")
+}
+
+func (u *UserAddress) Insert() (err error, id int64) {
+	if id, err = orm.NewOrm().Insert(u); err != nil {
+		return err, 0
+	}
+	return nil, id
+}
+
 func GetUserAddressDefault(user_id int64) (*UserAddress, int, error) {
 	address := UserAddress{}
 	if err := orm.NewOrm().QueryTable(UserAddress{}).Filter("UserId", user_id).Filter("IsSet", 1).Limit(1).One(&address); err != nil {
 		return nil, types.SystemDbErr, errors.New("数据库查询失败，请联系客服处理")
 	}
 	return &address, types.ReturnSuccess, nil
+}
+
+func (u *UserAddress) GetAddressById() (*UserAddress, int64, string) {
+	var address UserAddress
+	if err := orm.NewOrm().QueryTable(u.TableName()).Filter("Id", u.Id).One(&address); err != nil {
+		return nil, types.SystemDbErr, "数据库查询失败，请联系客服处理"
+	}
+	return &address, types.ReturnSuccess, ""
 }

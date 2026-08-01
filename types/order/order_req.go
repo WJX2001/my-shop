@@ -52,3 +52,16 @@ func (o OrderListCheck) OrderListCheckParamValidate() (int, error) {
 	}
 	return types.ReturnSuccess, nil
 }
+
+type OrderDetailCheck struct {
+	OrderId  int64 `json:"order_id"`
+	IsCancle int8  `json:"is_cancle"` //0:正常； 1.退换货
+
+}
+
+func (o OrderDetailCheck) OrderDetailCheckParamValidate() (int, error) {
+	if o.OrderId <= 0 {
+		return types.ParamLessZero, errors.New("订单 ID 小于 等于0")
+	}
+	return types.ReturnSuccess, nil
+}

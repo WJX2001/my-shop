@@ -29,6 +29,9 @@ func init() {
 			beego.NSRouter("/getUserInfo", &api.UserInfoController{}, "post:GetUserInfo"),
 			beego.NSRouter("/updateUserInfo", &api.UserInfoController{}, "post:UpdateUserInfo"),
 		),
+		beego.NSNamespace("/userAddress",
+			beego.NSRouter("/addAddress", &api.UserAddressController{}, "post:AddAddress"),
+		),
 		beego.NSNamespace("/images",
 			beego.NSRouter("/uploadFiles", &api.ImageController{}, "post:UploadFiles")),
 		beego.NSNamespace("/merchant",
@@ -50,6 +53,7 @@ func init() {
 		beego.NSNamespace("/goodsOrder",
 			beego.NSRouter("/createOrder", &api.OrderController{}, "post:CreateOrder"),
 			beego.NSRouter("/orderList", &api.OrderController{}, "post:OrderList"),
+			beego.NSRouter("/orderDetail", &api.OrderController{}, "post:OrderDetail"),
 		),
 	)
 

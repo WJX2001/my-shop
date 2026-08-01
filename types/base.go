@@ -13,6 +13,7 @@ const (
 	ParamLessZero             = 3005 // 参数小于 0
 	PageIsZero                = 4000 // 页码 0
 	PageSizeIsZero            = 4001 // 每页数量 0
+	PhoneEmptyError           = 4002 // 手机号为空
 	PhoneFormatError          = 4003 // 手机号码格式不正确
 	PhoneVerifyCodeEmptyError = 4004 // 手机号码验证码为空
 	PhoneVerifyCodeError      = 4005 // 手机号码验证码不正确
@@ -34,7 +35,6 @@ const (
 	TwicePasswordNotEqual     = 4023 // 新旧密码相等
 	AddLoginTimesError        = 4024 // 添加登陆次数错误
 	OldNewPhoneIsEqual        = 4025 // 新旧手机号码一样
-	AlreadyBindPassword       = 4052 // 已经绑定支付密码
 	PhoneIsAlreadyBind        = 4026 // 手机号码已经绑定
 	OldNewEmailEqual          = 4027 // 新旧邮箱一样
 	EmailAlreadyBind          = 4028 // 邮箱已经绑定
@@ -47,11 +47,14 @@ const (
 	CreateFilePathError       = 4035 // 创建文件路径失败
 	SaveFileFail              = 4036 // 保存文件失败
 	UpdateUserInfoFail        = 4037 // 更新用户信息失败
+	AddressIsEmpty            = 4038 // 地址为空
+	CreateAddressFail         = 4041 // 创建地址失败
 	GetGoodsListFail          = 4044 // 获取商品列表失败
 	GetMerchantListFail       = 4045 // 获取商家列表失败
 	UserTokenUserIdNotEqual   = 4046 // 用户ID 和 Token 不符合
 	InvalidGoodsPrice         = 4047 // 无效的商品价格
 	UserAuthError             = 4051 // 实名认证失败
+	AlreadyBindPassword       = 4052 // 已经绑定支付密码
 	FileAlreadyUpload         = 5058 // 图片已经上传过了
 	IntegralNotEnough         = 5065
 	InvalidConfig             = 6001 // 无效的配置参数

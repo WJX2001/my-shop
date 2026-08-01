@@ -67,3 +67,11 @@ func GetGoodsOrderList(page, pageSize int, user_id int64, status int8) ([]*Goods
 	}
 	return gds_order_list, total, nil
 }
+
+func GetGoodsOrderDetail(id int64) (*GoodsOrder, int, error) {
+	var order_dtl GoodsOrder
+	if err := orm.NewOrm().QueryTable(GoodsOrder{}).Filter("Id", id).One(&order_dtl); err != nil {
+		return nil, types.SystemDbErr, errors.New("数据库查询失败，请联系客服处理")
+	}
+	return &order_dtl, types.ReturnSuccess, nil
+}

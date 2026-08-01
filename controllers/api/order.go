@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	beego "github.com/beego/beego/v2/server/web"
-
 	"github.com/google/uuid"
 	"my-ganji-app/models"
 	"my-ganji-app/types"
@@ -14,6 +13,7 @@ type OrderController struct {
 	BaseController
 }
 
+// CreateOrder 直接创建订单
 func (c *OrderController) CreateOrder() {
 	requestUser, ok := c.CurrentUser()
 	if !ok {
@@ -119,6 +119,8 @@ func (c *OrderController) CreateOrder() {
 	c.ServeJSON()
 }
 
+//
+
 // OrderList 订单列表 OrderList
 func (c *OrderController) OrderList() {
 	u_tk, ok := c.CurrentUser()
@@ -178,6 +180,99 @@ func (c *OrderController) OrderList() {
 		"order_lst": olst_ret,
 	}
 	c.Data["json"] = RetResource(true, types.ReturnSuccess, data, "获取订单列表成功")
+	c.ServeJSON()
+	return
+}
+
+// OrderDetail 订单详情
+func (c *OrderController) OrderDetail() {
+	_, ok := c.CurrentUser()
+	if !ok {
+		return
+	}
+	var order_dtl type_order.OrderDetailCheck
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &order_dtl); err != nil {
+		c.Data["json"] = RetResource(false, types.InvalidFormatError, err, "无效的参数格式，请联系客服处理")
+		c.ServeJSON()
+		return
+	}
+	if code, err := order_dtl.OrderDetailCheckParamValidate(); err != nil {
+		c.Data["json"] = RetResource(false, code, err, err.Error())
+		c.ServeJSON()
+		return
+	}
+	ord_dtl, code, err := models.GetGoodsOrderDetail(order_dtl.OrderId)
+	if err != nil {
+		c.Data["json"] = RetResource(false, code, err, err.Error())
+		c.ServeJSON()
+		return
+	}
+	img_path, _ := beego.AppConfig.String("img_root_path")
+	var addr models.UserAddress
+	addr.Id = ord_dtl.AddressId
+	addrs, _, _ := addr.GetAddressById()
+	mct, _, _ := models.GetMerchantDetail(ord_dtl.MerchantId)
+	gdsdtl, _, _ := models.GetGoodsDetail(ord_dtl.GoodsId)
+	var goods_last_price float64
+	if gdsdtl.IsDiscount == 0 {
+		goods_last_price = gdsdtl.GoodsPrice
+	} else {
+		goods_last_price = gdsdtl.GoodsDisPrice
+	}
+	var ret_order *type_order.ReturnOrderProcess
+	if order_dtl.IsCancle != 0 {
+		order_process, _, err := models.GetOrderProcessDetail(ord_dtl.Id)
+		if err == nil && order_process != nil {
+			ret_order = &type_order.ReturnOrderProcess{
+				ProcessId:     order_process.Id,
+				ReturnUser:    mct.ContactUser,
+				ReturnPhone:   mct.Phone,
+				ReturnAddress: mct.Address,
+				ReturnReson:   order_process.RetGoodsRs,
+				ReturnAmount:  ord_dtl.PayAmount,
+				AskTime:       order_process.CreatedAt,
+				// 0:等待卖家确认; 1:卖家已同意; 2:卖家拒绝; 3:等待买家邮寄; 4:等待卖家收货; 5:卖家已经发货; 6:等待买家收货; 7:已完成
+				Process:  order_process.Process,
+				LeftTime: order_process.LeftTime,
+			}
+		} else {
+			ret_order = nil
+		}
+	} else {
+		ret_order = nil
+	}
+	odl := type_order.OrderDetailRet{
+		OrderId:      ord_dtl.Id,
+		GoodsId:      ord_dtl.GoodsId,
+		Logistics:    ord_dtl.Logistics,
+		ShipNumber:   ord_dtl.ShipNumber,
+		RecUser:      addrs.UserName,
+		RecPhone:     addrs.Phone,
+		RecAddress:   addrs.Address,
+		MerchantId:   mct.Id,
+		MerchantName: mct.MerchantName,
+		GoodsName:    gdsdtl.GoodsName,
+		GoodsLogo:    img_path + gdsdtl.Logo,
+		GoodsPrice:   goods_last_price,
+		PayIntegral:  ord_dtl.PayIntegral,
+		SendIntegral: gdsdtl.SendIntegral,
+		OrderStatus:  ord_dtl.OrderStatus,
+		BuyNums:      ord_dtl.BuyNums,
+		PayAmount:    ord_dtl.PayAmount,
+		ShipFee:      0,
+		Coupons:      ord_dtl.PayCoupon,
+		PayWay:       ord_dtl.PayWay,
+		OrderNumber:  ord_dtl.OrderNumber,
+		PayTime:      ord_dtl.PayAt,
+		CreateTime:   ord_dtl.CreatedAt,
+		IsCancle:     ord_dtl.IsCancle,
+		IsComment:    ord_dtl.IsComment,
+		IsDiscount:   gdsdtl.IsDiscount,
+		IsIntegral:   gdsdtl.IsIntegral,
+		GoodsTypes:   ord_dtl.GoodsTypes,
+		RetrurnOrder: ret_order,
+	}
+	c.Data["json"] = RetResource(true, types.ReturnSuccess, odl, "获取订单详情成功")
 	c.ServeJSON()
 	return
 }
